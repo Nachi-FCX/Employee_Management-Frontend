@@ -50,63 +50,40 @@ function handleFormSubmit(event :FormSubmitEvent <z.output<typeof RegistrationVa
 
         </UFormField>
 
-        <UFormField name="dateofbirth" label="Date of Birth">
+        <UFormField name="dateofbirth" label="Date of Birth" class="mt-5">
           <UInput type="date" v-model="formState.dateofbirth" />
         </UFormField>
 
-        <UFormField name="gender" label="Gender">
+        <UFormField name="gender" label="Gender" class="mt-5" >
           <USelect
-            v-model="formState.gender"
-            :options="['Male', 'Female', 'Other']"
-            placeholder="Select gender"
-          />
+            v-model="formState.gender" :items="['Male', 'Female', 'Other']" placeholder="Select gender"/>
         </UFormField>
 
-              <UFormField name="identification_number" label="Identification Number">
-                <UInput
-                  type="text"
-                  v-model="formState.identification_number"
-                  placeholder="Enter ID number"
-                />
+        <UFormField name="identification_number" label="Identification Number" class="mt-5">
+                <UInput type="text" v-model="formState.identification_number" placeholder="Enter ID number" />
               </UFormField>
 
-              <UFormField name="Number" label="Phone Number">
-                <UInput
-                  type="tel"
-                  v-model="formState.Number"
-                  placeholder="Enter phone number"
-                />
+              <UFormField name="Number" label="Phone Number" class="mt-5">
+                <UInput type="tel" v-model="formState.Number" placeholder="Enter phone number"/>
               </UFormField>
 
               <UFormField name="address" label="Address">
-                <UTextarea
-                  v-model="formState.address"
-                  placeholder="Enter address"
-                />
+                <UTextarea v-model="formState.address" placeholder="Enter address"/>
               </UFormField>
 
               <UFormField name="role" label="Role">
-                <UInput
-                  type="text"
-                  v-model="formState.role"
-                  placeholder="Enter role"
-                />
+                <UInput type="text" v-model="formState.role" placeholder="Enter role" />
               </UFormField>
 
               <UFormField name="contract_type" label="Contract Type">
-                <USelect
-                  v-model="formState.contract_type"
-                  :options="['Permanent', 'Contract', 'Internship']"
-                  placeholder="Select contract type"
-                />
+                <USelect v-model="formState.contract_type" :items="['Permanent', 'Contract', 'Internship']" 
+                placeholder="Select contract type" />
               </UFormField>
 
               <UFormField name="document_required" label="Document Required">
-                <USelect
-                  v-model="formState.document_required"
-                  :options="['Passport', 'Driving Licence', 'ID Card', 'Resume']"
+                <USelect v-model="formState.document_required" :items="['Passport', 'Driving Licence', 'ID Card', 'Resume']"
                   placeholder="Select document"
-                />
+                  />
               </UFormField>
 
 

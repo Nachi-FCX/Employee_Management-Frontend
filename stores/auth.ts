@@ -56,7 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
 
             // try to extract role / info from JWT payload
             const payload = parseJwt(res.token)
-            const roleValue = payload?.roleId ?? payload?.role ?? null
+            const roleValue = payload?.roleName ?? payload?.role_name ?? payload?.roleId ?? payload?.role ?? null
 
             user.value = { username, role: roleValue ? String(roleValue) : null }
 

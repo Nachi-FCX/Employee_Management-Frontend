@@ -2,7 +2,6 @@
   <div class="login-page">
     <div class="login-card">
       <div class="login-brand">
-        <div class="brand-mark">FM</div>
         <div class="brand-info">
           <h1>Fincorpx</h1>
           <p class="brand-sub">Employee Management Dashboard</p>
@@ -16,7 +15,7 @@
         <BaseInput
           v-model="username"
           label="Username"
-          placeholder="your.username"
+          placeholder="Username"
           type="text"
         />
 

@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar">
+  <nav v-if="showNavbar" class="navbar">
     <div class="nav-left">
       <NuxtLink to="/" class="brand">Fincorpx</NuxtLink>
     </div>
@@ -8,19 +8,35 @@
       <div v-if="user" class="user-info">
         <span class="username">{{ user.username }}</span>
       </div>
-      <button v-if="loggedIn" class="btn-logout" @click="handleLogout">Logout</button>
+      <button
+        v-if="loggedIn"
+        class="btn-logout"
+        @click="handleLogout"
+      >
+        Logout
+      </button>
     </div>
   </nav>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useAuthStore } from '~/stores/auth'
-import { navigateTo } from '#imports'
+import { useRoute, navigateTo } from '#imports'
 
 const auth = useAuthStore()
+const route = useRoute()
+
 const user = computed(() => auth.user)
 const loggedIn = computed(() => auth.loggedIn)
+
+/**
+ * Hide navbar on login & signup pages
+ */
+const showNavbar = computed(() => {
+  const hiddenRoutes = ['/login', '/signup']
+  return !hiddenRoutes.includes(route.path)
+})
 
 function handleLogout() {
   auth.logout()

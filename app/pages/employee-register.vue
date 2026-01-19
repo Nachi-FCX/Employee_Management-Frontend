@@ -23,8 +23,8 @@
             <UInput type="date" v-model="formState.dateofbirth" />
           </UFormField>
 
-          <UFormField name="gender" label="Gender">
-            <USelect v-model="formState.gender" :items="['Male', 'Female', 'Other']" />
+          <UFormField name="gender" label="Gender" >
+            <USelect v-model="formState.gender" :items="['Male', 'Female', 'Other'] " class="w-50" />
           </UFormField>
 
           <UFormField name="identification_number" label="Identification Number">
@@ -46,14 +46,14 @@
           <UFormField name="contract_type" label="Contract Type">
             <USelect
               v-model="formState.contract_type"
-              :items="['Permanent', 'Contract', 'Internship']"
+              :items="['Permanent', 'Contract', 'Internship']" class="w-50"
             />
           </UFormField>
 
           <UFormField name="document_required" label="Document Required">
             <USelect
               v-model="formState.document_required"
-              :items="['Passport', 'Driving Licence', 'ID Card', 'Resume']"
+              :items="['Passport', 'Driving Licence', 'ID Card', 'Resume']" class="w-50"
             />
           </UFormField>
         </div>

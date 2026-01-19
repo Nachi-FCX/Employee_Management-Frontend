@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { Employee } from '~/types/employee'
+
 
 export const RegistrationValidationSchema = z.object({
   name: z.string().min(2, 'Name should be at least 2 characters long'),

@@ -1,7 +1,7 @@
 <template>
     
-    <UFormField name="name" label="Name" >
-      <UInput type="type" placeholder="Enter Name" v-model="model" />
+    <UFormField  >
+      <UInput :type="type" :placeholder="placeholder" v-model="model" />
     </UFormField>
 
     

@@ -2,7 +2,7 @@
   <UContainer class="min-h-screen w-full p-0">
     <UCard class="w-full min-h-screen rounded-none">
       <template #header>
-        <h2 class="text-xl font-bold">EMPLOYEE REGISTRATION</h2>
+        <h2 class="text-xl font-bold">EMPLOYEE CREATION</h2>
       </template>
 
       <UForm

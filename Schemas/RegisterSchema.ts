@@ -1,12 +1,15 @@
-import{z} from 'zod'
+import { z } from 'zod'
+import type { Employee } from '~/types/employee'
 
 export const RegistrationValidationSchema = z.object({
-    name: z.string().min(2,'Name should be atleast 2 characters long'),
-    email: z.string().email('email is not valid'),
-    password: z.string().min(8,'Password should be atleast 8 characters long'),
-   passwordconfirm: z.string().min(8,'Password should be atleast 8 characters long')
-
-}).refine((data) => data.password === data.passwordconfirm ,{
-    message : 'passwords do not match',
-    path :['confirmpassword'] 
+  name: z.string().min(2, 'Name should be at least 2 characters long'),
+  dateofbirth: z.string(),
+  gender: z.string(),
+  email: z.email('Email is not valid'),
+  identification_number: z.string(),
+  Number: z.string(),
+  address: z.string(),
+  role: z.string(),
+  contract_type: z.string(),
+  document_required: z.string()
 })

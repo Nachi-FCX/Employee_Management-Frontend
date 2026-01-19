@@ -13,7 +13,7 @@
 
 
 <script setup lang="ts">
-import EmployeeRegistrationForm from './EmployeeRegistrationForm.vue'
+import EmployeeRegistrationForm from '../pages/EmployeeRegistrationForm.vue'
 import type { Employee } from '~/types/employee';
 
 const emit = defineEmits<{ (e: 'submit', payload: any): void }>()

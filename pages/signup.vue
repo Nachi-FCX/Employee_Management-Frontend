@@ -1,71 +1,3 @@
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import { signupSchema, getPasswordStatus } from '~/utils/validators'
-import { useAuthStore } from '~/stores/auth'
-
-const router = useRouter()
-const authStore = useAuthStore()
-const submitError = ref('')
-
-// 1. Initialize VeeValidate with the Zod Schema
-const { errors, handleSubmit, defineField, isSubmitting, values } = useForm({
-  validationSchema: toTypedSchema(signupSchema),
-  initialValues: {
-    username: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-    agreementAccepted: false
-  }
-})
-
-// 2. Define reactive fields linked to the schema
-const [username, usernameProps] = defineField('username')
-const [email, emailProps] = defineField('email')
-const [phone, phoneProps] = defineField('phone')
-const [password, passwordProps] = defineField('password')
-const [confirmPassword, confirmPasswordProps] = defineField('confirmPassword')
-const [agreementAccepted] = defineField('agreementAccepted')
-
-// 3. Password Strength Logic (Derived from the central validator)
-const passwordStatus = computed(() => getPasswordStatus(values.password || ''))
-
-const passwordStrengthClass = computed(() => {
-  if (!values.password) return ''
-  if (passwordStatus.value.score <= 2) return 'weak'
-  if (passwordStatus.value.score <= 4) return 'medium'
-  return 'strong'
-})
-
-const passwordStrengthText = computed(() => {
-  if (!values.password) return 'Enter password'
-  if (passwordStatus.value.score <= 2) return 'Weak'
-  if (passwordStatus.value.score <= 4) return 'Medium'
-  return 'Strong'
-})
-
-// 4. Submit Handler
-const handleSignup = handleSubmit(async (formValues) => {
-  submitError.value = ''
-  
-  try {
-    await authStore.signup({
-      username: formValues.username,
-      email: formValues.email,
-      phone: formValues.phone,
-      password: formValues.password
-    })
-    router.push('/dashboard')
-  } catch (err: any) {
-    submitError.value = err?.message || 'Signup failed. Please try again.'
-  }
-})
-</script>
-
 <template>
   <div class="signup-page">
     <div class="signup-container">
@@ -207,6 +139,11 @@ const handleSignup = handleSubmit(async (formValues) => {
           >
             Create Admin Account
           </BaseButton>
+          <!-- Login Link -->
+          <div class="login-prompt">
+            Already have an admin account?
+            <NuxtLink to="/login" class="login-link">Sign in here</NuxtLink>
+          </div>
 
           <div v-if="submitError" class="error-message">{{ submitError }}</div>
         </form>
@@ -214,3 +151,13 @@ const handleSignup = handleSubmit(async (formValues) => {
     </div>
   </div>
 </template>
+
+
+<script setup lang="ts">
+const { 
+  username, email, phone, password, confirmPassword, 
+  agreementAccepted, passwordStatus, passwordStrengthClass,
+  submitError, isSubmitting, errors, handleSignup 
+} = useSignupForm();
+</script>
+

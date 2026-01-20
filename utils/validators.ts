@@ -1,9 +1,7 @@
 import { z } from 'zod';
 
-/**
- * 1. REGEX PATTERNS
- * Centralized for consistency across schemas and manual checks
- */
+// 1. REGEX PATTERNS
+
 export const REGEX = {
   EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   UPPERCASE: /[A-Z]/,
@@ -13,10 +11,8 @@ export const REGEX = {
   PHONE: /^\+?[\d\s-]{10,}$/
 };
 
-/**
- * 2. PASSWORD STATUS HELPER
- * Powers the "✓" checklist and strength bar in the UI
- */
+// 2. PASSWORD STATUS HELPER
+ 
 export const getPasswordStatus = (password: string = '') => {
   const status = {
     hasMinLength: password.length >= 8,
@@ -30,9 +26,9 @@ export const getPasswordStatus = (password: string = '') => {
   return { ...status, score };
 };
 
-/**
- * 3. REUSABLE ATOMIC RULES
- */
+
+//  3. REUSABLE ATOMIC RULES
+ 
 export const emailRule = z.string().email('Invalid email address');
 
 export const passwordRule = z.string()
@@ -40,18 +36,17 @@ export const passwordRule = z.string()
   .regex(REGEX.UPPERCASE, 'Requires one uppercase letter')
   .regex(REGEX.SPECIAL, 'Requires one special character');
 
-/**
- * 4. LOGIN SCHEMA
- */
+
+// 4. LOGIN SCHEMA
+ 
 export const loginSchema = z.object({
   username: z.string().min(1, 'Username is required'),
   password: z.string().min(1, 'Password is required'),
   rememberMe: z.boolean().optional(),
 });
 
-/**
- * 5. SIGNUP SCHEMA
- */
+// 5. SIGNUP SCHEMA
+ 
 export const signupSchema = z.object({
   username: z.string().min(3, 'Username too short (min 3)'),
   email: emailRule,
@@ -66,9 +61,8 @@ export const signupSchema = z.object({
   path: ["confirmPassword"],
 });
 
-/**
- * 6. FILE VALIDATION UTILITY
- */
+// 6. FILE VALIDATION UTILITY
+
 export const fileSchema = (maxSizeMB: number, allowedTypes: string[]) => {
   return z.any()
     .refine((file) => !file || file.size <= maxSizeMB * 1024 * 1024, `File too large (max ${maxSizeMB}MB)`)

@@ -1,35 +1,8 @@
+// stores/auth.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { useRuntimeConfig, navigateTo } from '#imports'
-
-interface User {
-  username: string
-  role: string | null
-}
-
-interface SignupPayload {
-  full_name?: string
-  username: string
-  email: string
-  phone: string
-  password: string
-}
-
-function parseJwt(token: string) {
-  try {
-    const payload = token.split('.')[1]
-    const b64 = payload.replace(/-/g, '+').replace(/_/g, '/')
-    const json = decodeURIComponent(
-      atob(b64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    )
-    return JSON.parse(json)
-  } catch {
-    return null
-  }
-}
+import { navigateTo } from '#imports'
+import { authService } from '~/services/auth.service'
 
 export const useAuthStore = defineStore(
   'auth',
@@ -40,101 +13,58 @@ export const useAuthStore = defineStore(
     const loggedIn = computed(() => !!token.value)
     const role = computed(() => user.value?.role || null)
 
-    // ---------------- LOGIN ----------------
+    // Helper to decode JWT (Internal to store logic)
+    function parseJwt(token: string) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        return payload
+      } catch { return null }
+    }
+
     async function login(username: string, password: string) {
       try {
-        const config = useRuntimeConfig()
-        const apiBase = config.public?.apiBase || ''
-
-        const url = `${apiBase}/api/auth/login`
-        console.debug('[auth] POST', url)
-
-        const res = (await $fetch(url, {
-          method: 'POST',
-          body: { username, password }
-        })) as { token?: string; message?: string }
+        const res = await authService.login(username, password)
 
         if (!res?.token) {
           throw new Error(res?.message || 'Invalid credentials')
         }
 
         token.value = res.token
-
-        const payload = parseJwt(res.token)
-        const roleValue =
-          payload?.roleName ??
-          payload?.role_name ??
-          payload?.roleId ??
-          payload?.role ??
-          null
+        const decoded = parseJwt(res.token)
 
         user.value = {
           username,
-          role: roleValue ? String(roleValue) : null
+          role: String(decoded?.roleName ?? decoded?.role ?? null)
         }
 
-        if (process.client) {
-          await navigateTo('/dashboard')
-        }
+        if (process.client) await navigateTo('/dashboard')
       } catch (err: any) {
         throw new Error(err?.message || 'Login failed')
       }
     }
 
-    // ---------------- SIGNUP (Admin) ----------------
     async function signup(payload: SignupPayload) {
       try {
-        const config = useRuntimeConfig()
-        const apiBase = config.public?.apiBase || ''
-
-        const url = `${apiBase}/api/auth/signup`
-        console.debug('[auth] POST', url)
-
-        const res = (await $fetch(url, {
-          method: 'POST',
-          body: payload
-        })) as {
-          message?: string
-          user_id?: number
-          employee_id?: number
-        }
+        const res = await authService.signup(payload)
 
         if (!res?.user_id || !res?.employee_id) {
           throw new Error(res?.message || 'Signup failed')
         }
 
-        // ❌ No token returned by backend
-        // ❌ No auto login after signup
-        // ✅ Redirect user to login
-
-        if (process.client) {
-          await navigateTo('/login')
-        }
-
+        if (process.client) await navigateTo('/login')
         return res
       } catch (err: any) {
         throw new Error(err?.message || 'Signup failed')
       }
     }
 
-    // ---------------- LOGOUT ----------------
     function logout() {
       user.value = null
       token.value = null
       navigateTo('/login')
     }
 
-    return {
-      user,
-      token,
-      loggedIn,
-      role,
-      login,
-      signup,
-      logout
-    }
+    return { user, token, loggedIn, role, login, signup, logout }
   },
-  {
-    persist: true
-  }
+  { persist: true }
 )

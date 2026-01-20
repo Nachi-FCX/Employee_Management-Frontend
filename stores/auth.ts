@@ -8,6 +8,7 @@ interface User {
 }
 
 interface SignupPayload {
+  full_name?: string
   username: string
   email: string
   phone: string
@@ -25,7 +26,7 @@ function parseJwt(token: string) {
         .join('')
     )
     return JSON.parse(json)
-  } catch (e) {
+  } catch {
     return null
   }
 }
@@ -53,12 +54,7 @@ export const useAuthStore = defineStore(
           body: { username, password }
         })) as { token?: string; message?: string }
 
-        console.debug('[auth] response', {
-          ok: !!res?.token,
-          message: res?.message
-        })
-
-        if (!res || !res.token) {
+        if (!res?.token) {
           throw new Error(res?.message || 'Invalid credentials')
         }
 
@@ -85,7 +81,7 @@ export const useAuthStore = defineStore(
       }
     }
 
-    // ---------------- SIGNUP (Admin Basic) ----------------
+    // ---------------- SIGNUP (Admin) ----------------
     async function signup(payload: SignupPayload) {
       try {
         const config = useRuntimeConfig()
@@ -97,35 +93,25 @@ export const useAuthStore = defineStore(
         const res = (await $fetch(url, {
           method: 'POST',
           body: payload
-        })) as { token?: string; message?: string }
+        })) as {
+          message?: string
+          user_id?: number
+          employee_id?: number
+        }
 
-        console.debug('[auth] response', {
-          ok: !!res?.token,
-          message: res?.message
-        })
-
-        if (!res || !res.token) {
+        if (!res?.user_id || !res?.employee_id) {
           throw new Error(res?.message || 'Signup failed')
         }
 
-        token.value = res.token
-
-        const jwtPayload = parseJwt(res.token)
-        const roleValue =
-          jwtPayload?.roleName ??
-          jwtPayload?.role_name ??
-          jwtPayload?.roleId ??
-          jwtPayload?.role ??
-          null
-
-        user.value = {
-          username: payload.username,
-          role: roleValue ? String(roleValue) : null
-        }
+        // ❌ No token returned by backend
+        // ❌ No auto login after signup
+        // ✅ Redirect user to login
 
         if (process.client) {
-          await navigateTo('/dashboard')
+          await navigateTo('/login')
         }
+
+        return res
       } catch (err: any) {
         throw new Error(err?.message || 'Signup failed')
       }

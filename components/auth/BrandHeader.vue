@@ -29,38 +29,3 @@ defineProps<{
 }>();
 </script>
 
-<style scoped>
-.brand-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.brand-icon .icon-wrapper {
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, #06b6d4 0%, #10b981 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 20px rgba(6, 182, 212, 0.2);
-}
-
-.brand-info h1 {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #06b6d4 0%, #10b981 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.brand-subtitle {
-  margin: 4px 0 0 0;
-  color: #64748b;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-</style>

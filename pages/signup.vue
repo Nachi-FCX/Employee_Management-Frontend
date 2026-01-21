@@ -155,9 +155,23 @@
 
 <script setup lang="ts">
 const { 
-  username, email, phone, password, confirmPassword, 
-  agreementAccepted, passwordStatus, passwordStrengthClass,
-  submitError, isSubmitting, errors, handleSignup 
+  username,
+  usernameProps,
+  email,
+  emailProps,
+  phone,
+  phoneProps,
+  password,
+  passwordProps,
+  confirmPassword,
+  confirmPasswordProps,
+  agreementAccepted,
+  passwordStatus,
+  passwordStrengthClass,
+  submitError,
+  isSubmitting,
+  errors,
+  handleSignup
 } = useSignupForm();
 </script>
 

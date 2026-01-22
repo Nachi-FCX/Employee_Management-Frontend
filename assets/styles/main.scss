@@ -35,7 +35,7 @@ aside {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  
   background: linear-gradient(135deg, #f6f9fc 0%, #f0f7ff 100%);
   position: relative;
   overflow: hidden;
@@ -59,7 +59,7 @@ aside {
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 2px;
 }
 
 .input-group {
@@ -263,7 +263,7 @@ aside {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
@@ -295,7 +295,7 @@ aside {
     font-size: 2rem;
     font-weight: 700;
     margin: 0 0 8px 0;
-    color: white;
+    color: rgb(252, 252, 252);
   }
   
   .brand-subtitle {
@@ -375,7 +375,7 @@ aside {
 }
 
 .form-header {
-  margin-bottom: 40px;
+  margin-bottom: 4px;
   
   h2 {
     font-size: 2rem;
@@ -395,7 +395,7 @@ aside {
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px 32px;
+  gap: 0px 32px;
   margin-bottom: 32px;
   
   @media (max-width: 1024px) {
@@ -656,6 +656,7 @@ aside {
   .signup-container {
     grid-template-columns: 1fr;
     max-width: 600px;
+
   }
   
   .left-panel {
@@ -804,6 +805,7 @@ button:hover {
 .base-button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+  
 }
 .toggle-password-action {
   /* Position inside the input-wrapper */
@@ -869,6 +871,7 @@ input.has-toggle {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 30px 0px;
 }
 
 .brand-icon .icon-wrapper {
@@ -884,18 +887,139 @@ input.has-toggle {
 
 .brand-info h1 {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #000000 0%, #10b981 100%);
+  background: rgb(255, 255, 255);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.brand-subtitle {
-  margin: 4px 0 0 0;
-  color: #ffffff;
-  font-size: 0.85rem;
-  font-weight: 500;
+
+
+.login-type-switch {
+  display: flex;
+  gap: 28px;
+  margin: 20px 0 24px;
 }
 
+/* Each option */
+.login-type-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease, border 0.2s ease;
+  border: 1px solid transparent;
+}
+
+/* Hover */
+.login-type-option:hover {
+  background: #f5f9ff;
+}
+
+/* Radio button */
+.login-type-option input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #0ea5e9;
+  cursor: pointer;
+}
+
+/* Text container */
+.option-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3; /* Improved line spacing */
+}
+
+/* Title */
+.option-text .title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Description */
+.option-text .desc {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Selected state - entire container */
+.login-type-option.selected {
+  background: #f0f9ff;
+  border-color: #0ea5e9;
+}
+
+/* Selected text styling */
+.login-type-option.selected .option-text .title {
+  color: #0ea5e9;
+}
+
+.login-type-option.selected .option-text .desc {
+  color: #0ea5e9;
+  opacity: 0.8;
+}
+
+.terms-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #2d3748;
+}
+
+.terms-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.field-error {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 6px;
+  color: #c53030;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon-warning {
+  width: 16px;
+  height: 16px;
+  background: #c53030;
+  border-radius: 50%;
+  position: relative;
+}
+
+.icon-warning::before,
+.icon-warning::after {
+  content: '';
+  position: absolute;
+  background: white;
+  border-radius: 1px;
+}
+
+.icon-warning::before {
+  width: 2px;
+  height: 8px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.icon-warning::after {
+  width: 2px;
+  height: 2px;
+  top: calc(50% + 5px);
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

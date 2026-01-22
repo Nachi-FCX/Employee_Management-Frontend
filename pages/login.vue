@@ -3,12 +3,13 @@
     <BackgroundDecoration />
 
     <div class="login-card">
-      <BrandHeader subtitle="Employee Management Dashboard" />
+      <div class="logo-style">
+      <h1>ABCD limited</h1>
+    </div>
       <PageHeader
         title="Welcome Back"
         subtitle="Enter your credentials to access your dashboard"
       />
-
       <form @submit.prevent="handleLogin" class="login-form">
 
         <!-- LOGIN TYPE SWITCH -->
@@ -218,6 +219,16 @@ const {
   color: #0ea5e9;
 }
 
+.brand-info h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  background: rgb(0, 0, 0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* Mobile */
 @media (max-width: 640px) {
   .login-type-switch {
@@ -225,4 +236,5 @@ const {
     gap: 12px;
   }
 }
+
 </style>

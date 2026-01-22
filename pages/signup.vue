@@ -4,10 +4,8 @@
 
       <!-- Left Panel (UNCHANGED UI) -->
       <div class="left-panel">
-        <div class="brand-section">
-          <p class="brand-subtitle">Create Root Account</p>
-        </div>
-
+        
+        <BrandHeader subtitle="Employee Management Dashboard" />
         <div class="progress-section">
           <div class="step" :class="{ active: currentStep === 1 }">
             <div class="step-number">1</div>
@@ -46,9 +44,6 @@
         >
           <div class="form-header">
             <h2>Root Registration</h2>
-            <p class="form-subtitle">
-              Create a root account to set up your company
-            </p>
           </div>
 
           <div class="form-grid">
@@ -114,33 +109,18 @@
               />
             </div>
           </div>
+          <label class="terms-inline">
+  <input
+    type="checkbox"
+    v-model="agreementAccepted"
+    class="terms-checkbox"
+  />
+  <span>I agree to the Terms of Service</span>
+</label>
 
-          <div class="terms-agreement-card">
-            <div class="terms-header">
-              <h3>Terms of Service</h3>
-            </div>
-            <div class="terms-content">
-              <p>
-                By checking the box below, you agree to our Terms of Service and Privacy Policy...
-              </p>
-            </div>
-            <div class="terms-checkbox">
-              <label class="checkbox-wrapper">
-                <input
-                  type="checkbox"
-                  v-model="agreementAccepted"
-                  class="checkbox-input"
-                />
-                <span class="checkbox-custom"></span>
-                <span class="checkbox-label">
-                  I agree to the Terms of Service
-                </span>
-              </label>
-            </div>
             <div v-if="errors.agreementAccepted" class="field-error">
               <i class="icon-warning"></i> You must accept the terms to continue
             </div>
-          </div>
 
           <BaseButton type="submit" class="submit-btn">
             Continue

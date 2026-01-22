@@ -15,7 +15,7 @@ defineProps<{
 
 <style scoped>
 .page-header {
-  margin: 24px 0 32px;
+
 }
 
 .title {

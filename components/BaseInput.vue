@@ -1,5 +1,8 @@
 <template>
-  <div class="form-field" :class="{ 'has-error': error, 'has-success': isValid && modelValue }">
+  <div
+    class="form-field"
+    :class="{ 'has-error': error, 'has-success': isValid && modelValue }"
+  >
     <label :for="id || name" v-if="label">
       {{ label }}
       <span v-if="required" class="required">*</span>
@@ -9,30 +12,33 @@
       <input
         v-bind="$attrs"
         :id="id || name"
+        :name="name"
         :type="computedType"
         :placeholder="placeholder"
         :value="modelValue"
-        @input="handleInput"
-        @blur="handleBlur"
         :disabled="disabled"
-        :required="required"
+       
         :class="{ 'has-icon': icon, 'has-toggle': type === 'password' }"
+        @input="onInput"
+        @blur="onBlur"
       />
-      
-      <button 
-        v-if="type === 'password'" 
-        type="button" 
+
+      <button
+        v-if="type === 'password'"
+        type="button"
         class="toggle-password"
         @click="togglePasswordVisibility"
         :aria-label="isPasswordVisible ? 'Hide password' : 'Show password'"
       >
-        <span class="toggle-text">{{ isPasswordVisible ? 'Hide' : 'Show' }}</span>
+        <span class="toggle-text">
+          {{ isPasswordVisible ? 'Hide' : 'Show' }}
+        </span>
       </button>
     </div>
-    
+
     <div v-if="error" class="error-message">{{ error }}</div>
     <div v-if="hint && !error" class="hint">{{ hint }}</div>
-    
+
     <div v-if="maxLength" class="char-counter">
       {{ modelValue?.length || 0 }}/{{ maxLength }}
     </div>
@@ -40,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, useAttrs } from 'vue'
 
 interface Props {
   modelValue: string | number
@@ -58,19 +64,20 @@ interface Props {
   icon?: boolean
 }
 
-// Disable attribute inheritance so we can manually bind $attrs to the <input>
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'text',
   required: false,
-  disabled: false
+  disabled: false,
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
-  'blur': []
+  blur: []
 }>()
+
+const attrs = useAttrs()
 
 const isTouched = ref(false)
 const isPasswordVisible = ref(false)
@@ -85,21 +92,34 @@ const computedType = computed(() => {
 const isValid = computed(() => {
   if (!props.modelValue) return false
   if (props.error) return false
-  const valString = String(props.modelValue);
-  if (props.required && !valString.trim()) return false
-  if (props.maxLength && valString.length > props.maxLength) return false
-  if (props.pattern && !new RegExp(props.pattern).test(valString)) return false
+
+  const val = String(props.modelValue)
+
+  if (props.required && !val.trim()) return false
+  if (props.maxLength && val.length > props.maxLength) return false
+  if (props.pattern && !new RegExp(props.pattern).test(val)) return false
+
   return true
 })
 
-const handleInput = (event: Event) => {
+/* ✅ IMPORTANT: forward vee-validate events */
+const onInput = (event: Event) => {
   const value = (event.target as HTMLInputElement).value
+
   emit('update:modelValue', value)
+
+  if (typeof attrs.onInput === 'function') {
+    attrs.onInput(event)
+  }
 }
 
-const handleBlur = () => {
+const onBlur = (event: Event) => {
   isTouched.value = true
   emit('blur')
+
+  if (typeof attrs.onBlur === 'function') {
+    attrs.onBlur(event)
+  }
 }
 
 const togglePasswordVisibility = () => {
@@ -129,11 +149,11 @@ input {
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   transition: all 0.2s ease;
-  
+
   &.has-toggle {
-    padding-right: 85px; // Extra space for the Show button
+    padding-right: 85px;
   }
-  
+
   &:focus {
     outline: none;
     border-color: #06b6d4;
@@ -141,40 +161,20 @@ input {
   }
 }
 
-/* THE NEW STYLE: High-contrast Dashboard Toggle */
 .toggle-password {
   position: absolute;
   right: 8px;
-  
-  /* Overriding Global Scss */
   background: none;
-  width: auto !important;
-  height: auto !important;
-  padding: 6px 12px !important;
-  border-radius: 8px !important;
-  margin: 0 !important;
-  
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease !important;
   z-index: 5;
-
-  
 
   .toggle-text {
     color: #06b6d4;
     font-size: 0.7rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    line-height: 1;
-    
-    &.is-active {
-      background: #10b981;
-      box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-    }
   }
 }
 

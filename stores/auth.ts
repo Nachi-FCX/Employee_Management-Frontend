@@ -4,6 +4,14 @@ import { ref, computed } from 'vue'
 import { navigateTo } from '#imports'
 import { authService } from '~/services/auth.service'
 
+/* You can extend your existing User type like this:
+interface User {
+  username: string
+  role: 'root' | 'employee'
+  companyCompleted: boolean
+}
+*/
+
 export const useAuthStore = defineStore(
   'auth',
   () => {
@@ -12,18 +20,31 @@ export const useAuthStore = defineStore(
 
     const loggedIn = computed(() => !!token.value)
     const role = computed(() => user.value?.role || null)
+    const companyCompleted = computed(
+      () => user.value?.companyCompleted ?? false
+    )
 
-    // Helper to decode JWT (Internal to store logic)
+    /* ----------------------------------
+       Helper: Decode JWT
+    ----------------------------------- */
     function parseJwt(token: string) {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        return payload
-      } catch { return null }
+        return JSON.parse(atob(token.split('.')[1]))
+      } catch {
+        return null
+      }
     }
 
-    async function login(username: string, password: string) {
+    /* ----------------------------------
+       LOGIN (ROOT / EMPLOYEE)
+    ----------------------------------- */
+    async function login(payload: {
+      username: string
+      password: string
+      role: 'root' | 'employee'
+    }) {
       try {
-        const res = await authService.login(username, password)
+        const res = await authService.login(payload)
 
         if (!res?.token) {
           throw new Error(res?.message || 'Invalid credentials')
@@ -33,38 +54,86 @@ export const useAuthStore = defineStore(
         const decoded = parseJwt(res.token)
 
         user.value = {
-          username,
-          role: String(decoded?.roleName ?? decoded?.role ?? null)
+          username: payload.username,
+          role: String(
+            decoded?.roleName ??
+            decoded?.role ??
+            payload.role
+          ) as 'root' | 'employee',
+
+          // 🔑 THIS IS THE KEY PART
+          companyCompleted: Boolean(
+            decoded?.companyCompleted ?? false
+          )
         }
 
-        if (process.client) await navigateTo('/dashboard')
+        /* ----------------------------------
+           ROUTING LOGIC (FINAL)
+        ----------------------------------- */
+        if (process.client) {
+          // Root → must complete company first
+          if (user.value.role === 'root' && !user.value.companyCompleted) {
+            await navigateTo('/onboarding/company')
+          } else {
+            await navigateTo('/dashboard')
+          }
+        }
       } catch (err: any) {
         throw new Error(err?.message || 'Login failed')
       }
     }
 
+    /* ----------------------------------
+       CALLED AFTER COMPANY SETUP
+    ----------------------------------- */
+    function markCompanyCompleted() {
+      if (user.value) {
+        user.value.companyCompleted = true
+      }
+    }
+
+    /* ----------------------------------
+       SIGNUP (ROOT ACCOUNT ONLY)
+    ----------------------------------- */
     async function signup(payload: SignupPayload) {
       try {
         const res = await authService.signup(payload)
 
-        if (!res?.user_id || !res?.employee_id) {
+        if (!res?.user_id) {
           throw new Error(res?.message || 'Signup failed')
         }
 
-        if (process.client) await navigateTo('/login')
+        // After signup → go to login
+        if (process.client) {
+          await navigateTo('/login')
+        }
+
         return res
       } catch (err: any) {
         throw new Error(err?.message || 'Signup failed')
       }
     }
 
+    /* ----------------------------------
+       LOGOUT
+    ----------------------------------- */
     function logout() {
       user.value = null
       token.value = null
       navigateTo('/login')
     }
 
-    return { user, token, loggedIn, role, login, signup, logout }
+    return {
+      user,
+      token,
+      loggedIn,
+      role,
+      companyCompleted,
+      login,
+      signup,
+      logout,
+      markCompanyCompleted
+    }
   },
   { persist: true }
 )

@@ -48,6 +48,7 @@ export const loginSchema = z.object({
 // 5. SIGNUP SCHEMA
  
 export const signupSchema = z.object({
+  fullName: z.string().min(3, 'Full name is too short').regex(/^[A-Za-z\s]+$/, 'Full name can contain only letters and spaces'),
   username: z.string().min(3, 'Username too short (min 3)'),
   email: emailRule,
   phone: z.string().min(10, 'Invalid phone number'),
@@ -57,9 +58,10 @@ export const signupSchema = z.object({
     errorMap: () => ({ message: 'Please accept the terms to continue' }),
   }),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+})
+
 
 // 6. FILE VALIDATION UTILITY
 
@@ -68,3 +70,10 @@ export const fileSchema = (maxSizeMB: number, allowedTypes: string[]) => {
     .refine((file) => !file || file.size <= maxSizeMB * 1024 * 1024, `File too large (max ${maxSizeMB}MB)`)
     .refine((file) => !file || allowedTypes.includes(file.type), "Unsupported file format");
 };
+
+// 7. COMPANY DETAILS SCHEMA
+export const companySchema = z.object({
+  companyName: z.string().min(3, 'Company name is required'),
+  companyEmail: z.string().email('Invalid company email'),
+  industry: z.string().min(2, 'Industry is required')
+})

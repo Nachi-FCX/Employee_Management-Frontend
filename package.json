@@ -27,6 +27,7 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@iconify-json/lucide": "^1.2.86",
     "@types/node": "^24.0.3",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^8.57.1",

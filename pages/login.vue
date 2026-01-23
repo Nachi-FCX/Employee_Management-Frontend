@@ -12,7 +12,6 @@
       />
       <form @submit.prevent="handleLogin" class="login-form">
 
-        <!-- LOGIN TYPE SWITCH -->
         <div class="login-type-switch">
           <label
             class="login-type-option"
@@ -57,12 +56,8 @@
             v-model="username"
             v-bind="usernameProps"
             :label="loginType === 'root' ? 'Root Email' : 'Username'"
-            :placeholder="
-              loginType === 'root'
-                ? 'admin@company.com'
-                : 'Enter your username'
-            "
             :error="errors.username"
+            useIftaLabel
           />
         </div>
 
@@ -73,8 +68,8 @@
               v-model="password"
               v-bind="passwordProps"
               label="Password"
-              :type="showPassword ? 'text' : 'password'"
-              placeholder="Enter your password"
+              :type=" showPassword ? 'text' : 'password' "
+              useIftaLabel
               :error="errors.password"
             />
           </div>
@@ -123,7 +118,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useLoginForm } from '~/composables/useAuthForms'
 
 const loginType = ref<'root' | 'employee'>('employee')
 

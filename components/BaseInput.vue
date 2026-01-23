@@ -3,21 +3,16 @@
     class="form-field"
     :class="{ 'has-error': error, 'has-success': isValid && modelValue }"
   >
-    <label :for="id || name" v-if="label">
-      {{ label }}
-      <span v-if="required" class="required">*</span>
-    </label>
-
+  <ClientOnly>
+  <IftaLabel v-if="useIftaLabel && label">
     <div class="input-wrapper">
-      <input
+      <InputText
         v-bind="$attrs"
         :id="id || name"
         :name="name"
         :type="computedType"
-        :placeholder="placeholder"
         :value="modelValue"
         :disabled="disabled"
-       
         :class="{ 'has-icon': icon, 'has-toggle': type === 'password' }"
         @input="onInput"
         @blur="onBlur"
@@ -36,6 +31,14 @@
       </button>
     </div>
 
+      <label :for="id || name">
+        {{ label }}
+        <span v-if="required" class="required">*</span>
+      </label>
+  </IftaLabel>
+</ClientOnly>
+
+
     <div v-if="error" class="error-message">{{ error }}</div>
     <div v-if="hint && !error" class="hint">{{ hint }}</div>
 
@@ -47,11 +50,12 @@
 
 <script setup lang="ts">
 import { ref, computed, useAttrs } from 'vue'
+import IftaLabel from 'primevue/iftalabel'
+import InputText from 'primevue/inputtext'
 
 interface Props {
   modelValue: string | number
   label?: string
-  placeholder?: string
   type?: string
   id?: string
   name?: string
@@ -62,6 +66,7 @@ interface Props {
   maxLength?: number
   pattern?: string
   icon?: boolean
+  useIftaLabel?: boolean 
 }
 
 defineOptions({ inheritAttrs: false })
@@ -70,6 +75,7 @@ const props = withDefaults(defineProps<Props>(), {
   type: 'text',
   required: false,
   disabled: false,
+  useIftaLabel: false     
 })
 
 const emit = defineEmits<{

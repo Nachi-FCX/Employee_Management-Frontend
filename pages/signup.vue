@@ -37,11 +37,7 @@
       <div class="right-panel">
 
         <!-- ================= STEP 1 : ROOT FORM (UNCHANGED UI) ================= -->
-        <form
-          v-if="currentStep === 1"
-          @submit.prevent="goToCompanyStep"
-          class="signup-form"
-        >
+        <form v-if="currentStep === 1" @submit.prevent="goToCompanyStep" class="signup-form">
           <div class="form-header">
             <h2>Root Registration</h2>
           </div>
@@ -53,7 +49,7 @@
                 v-model="fullName"
                 v-bind="fullNameProps"
                 :error="errors.fullName"
-                placeholder="Enter Full Name"
+                useIftaLabel
               />
             </div>
 
@@ -62,8 +58,8 @@
                 label="Username"
                 v-model="username"
                 v-bind="usernameProps"
-                placeholder="Root username"
                 :error="errors.username"
+                useIftaLabel
               />
             </div>
 
@@ -72,8 +68,8 @@
                 v-model="email"
                 v-bind="emailProps"
                 label="Email Address"
-                placeholder="root@company.com"
                 :error="errors.email"
+                useIftaLabel
               />
             </div>
 
@@ -82,8 +78,8 @@
                 v-model="phone"
                 v-bind="phoneProps"
                 label="Phone Number"
-                placeholder="+91..."
                 :error="errors.phone"
+                useIftaLabel
               />
             </div>
 
@@ -93,8 +89,8 @@
                 v-bind="passwordProps"
                 label="Password"
                 type="password"
-                placeholder="Create a strong password"
                 :error="errors.password"
+                useIftaLabel
               />
             </div>
 
@@ -104,8 +100,8 @@
                 v-bind="confirmPasswordProps"
                 label="Confirm Password"
                 type="password"
-                placeholder="Repeat password"
                 :error="errors.confirmPassword"
+                useIftaLabel
               />
             </div>
           </div>
@@ -151,8 +147,8 @@
                 label="Company Name"
                 v-model="companyName"
                 v-bind="companyNameProps"
-                placeholder="Company Name"
                 :error="companyErrors.companyName"
+                useIftaLabel
               />
             </div>
 
@@ -161,8 +157,8 @@
                 label="Company Email"
                 v-model="companyEmail"
                 v-bind="companyEmailProps"
-                placeholder="Company Email ID"
                 :error="companyErrors.companyEmail"
+                useIftaLabel
             />
             </div>
 
@@ -171,8 +167,8 @@
                 label="Industry"
                 v-model="industry"
                 v-bind="industryProps"
-                placeholder = "Industry" 
                 :error="companyErrors.industry"
+                useIftaLabel
               />
             </div>
           </div>

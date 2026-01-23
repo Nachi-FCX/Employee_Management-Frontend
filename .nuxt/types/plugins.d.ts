@@ -28,7 +28,8 @@ type NuxtAppInjections =
   InjectionType<typeof import("../../node_modules/nuxt/dist/app/plugins/warn.dev.server.js")> &
   InjectionType<typeof import("../../node_modules/nuxt/dist/app/plugins/check-if-layout-used.js")> &
   InjectionType<typeof import("../../plugins/pinia-persisted.client")> &
-  InjectionType<typeof import("../../plugins/pinia-persistedstate.client")>
+  InjectionType<typeof import("../../plugins/pinia-persistedstate.client")> &
+  InjectionType<typeof import("../../plugins/primevue.client")>
 
 declare module '#app' {
   interface NuxtApp extends NuxtAppInjections { }

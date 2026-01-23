@@ -7,6 +7,7 @@
     <span v-if="loading" class="spinner"></span>
     <slot v-else />
   </button>
+  
 </template>
 
 <script setup>

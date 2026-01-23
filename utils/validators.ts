@@ -1,90 +1,79 @@
-<!-- utils/validators.ts -->
-export interface ValidationRule {
-  required?: boolean
-  minLength?: number
-  maxLength?: number
-  pattern?: RegExp
-  email?: boolean
-  phone?: boolean
-  custom?: (value: string) => string | boolean
-}
+import { z } from 'zod';
 
-export interface ValidationResult {
-  isValid: boolean
-  errors: Record<string, string>
-}
+// 1. REGEX PATTERNS
 
-export const validateField = (
-  value: string,
-  rules: ValidationRule,
-  fieldName: string
-): string => {
-  if (rules.required && !value?.trim()) {
-    return `${fieldName} is required`
-  }
+export const REGEX = {
+  EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  UPPERCASE: /[A-Z]/,
+  LOWERCASE: /[a-z]/,
+  NUMBER: /[0-9]/,
+  SPECIAL: /[^A-Za-z0-9]/,
+  PHONE: /^\+?[\d\s-]{10,}$/
+};
 
-  if (value) {
-    if (rules.minLength && value.length < rules.minLength) {
-      return `${fieldName} must be at least ${rules.minLength} characters`
-    }
+// 2. PASSWORD STATUS HELPER
+ 
+export const getPasswordStatus = (password: string = '') => {
+  const status = {
+    hasMinLength: password.length >= 8,
+    hasUppercase: REGEX.UPPERCASE.test(password),
+    hasLowercase: REGEX.LOWERCASE.test(password),
+    hasNumber: REGEX.NUMBER.test(password),
+    hasSpecial: REGEX.SPECIAL.test(password),
+  };
 
-    if (rules.maxLength && value.length > rules.maxLength) {
-      return `${fieldName} must be less than ${rules.maxLength} characters`
-    }
+  const score = Object.values(status).filter(Boolean).length;
+  return { ...status, score };
+};
 
-    if (rules.pattern && !rules.pattern.test(value)) {
-      return `Please enter a valid ${fieldName}`
-    }
 
-    if (rules.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      return 'Please enter a valid email address'
-    }
+//  3. REUSABLE ATOMIC RULES
+ 
+export const emailRule = z.string().email('Invalid email address');
 
-    if (rules.phone && !/^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/[\s\-\(\)]/g, ''))) {
-      return 'Please enter a valid phone number'
-    }
+export const passwordRule = z.string()
+  .min(8, 'Must be at least 8 characters')
+  .regex(REGEX.UPPERCASE, 'Requires one uppercase letter')
+  .regex(REGEX.SPECIAL, 'Requires one special character');
 
-    if (rules.custom) {
-      const customResult = rules.custom(value)
-      if (typeof customResult === 'string') {
-        return customResult
-      }
-      if (customResult === false) {
-        return `${fieldName} is invalid`
-      }
-    }
-  }
 
-  return ''
-}
+// 4. LOGIN SCHEMA
+ 
+export const loginSchema = z.object({
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required'),
+  rememberMe: z.boolean().optional(),
+});
 
-export const validateForm = (
-  formData: Record<string, string>,
-  validationRules: Record<string, ValidationRule>
-): ValidationResult => {
-  const errors: Record<string, string> = {}
-  let isValid = true
+// 5. SIGNUP SCHEMA
+ 
+export const signupSchema = z.object({
+  fullName: z.string().min(3, 'Full name is too short').regex(/^[A-Za-z\s]+$/, 'Full name can contain only letters and spaces'),
+  username: z.string().min(3, 'Username too short (min 3)'),
+  email: emailRule,
+  phone: z.string().min(10, 'Invalid phone number'),
+  password: passwordRule,
+  confirmPassword: z.string(),
+  agreementAccepted: z.literal(true, {
+    errorMap: () => ({ message: 'Please accept the terms to continue' }),
+  }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+})
 
-  Object.keys(validationRules).forEach((fieldName) => {
-    const value = formData[fieldName] || ''
-    const error = validateField(value, validationRules[fieldName], fieldName)
-    
-    if (error) {
-      errors[fieldName] = error
-      isValid = false
-    }
-  })
 
-  return { isValid, errors }
-}
+// 6. FILE VALIDATION UTILITY
 
-// Common validation patterns
-export const patterns = {
-  username: /^[a-zA-Z0-9_]{3,20}$/,
-  password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  phone: /^[\+]?[1-9][\d]{0,15}$/,
-  name: /^[a-zA-Z\s]{2,50}$/,
-  numeric: /^\d+$/,
-  alphaNumeric: /^[a-zA-Z0-9]+$/
-}
+export const fileSchema = (maxSizeMB: number, allowedTypes: string[]) => {
+  return z.any()
+    .refine((file) => !file || file.size <= maxSizeMB * 1024 * 1024, `File too large (max ${maxSizeMB}MB)`)
+    .refine((file) => !file || allowedTypes.includes(file.type), "Unsupported file format");
+};
+
+// 7. COMPANY DETAILS SCHEMA
+export const companySchema = z.object({
+  companyName: z.string().min(3, 'Company name is required'),
+  companyEmail: z.string().email('Invalid company email'),
+  industry: z.string().min(2, 'Industry is required')
+})

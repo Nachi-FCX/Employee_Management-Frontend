@@ -1,38 +1,47 @@
-<!-- components/BaseInput.vue -->
 <template>
-  <div class="form-field" :class="{ 'has-error': error, 'has-success': isValid && modelValue }">
-    <input
-      :id="id || name"
-      :type="computedType"
-      :placeholder="placeholder"
-      :value="modelValue"
-      @input="handleInput"
-      @blur="handleBlur"
-      :disabled="disabled"
-      :required="required"
-      :class="{ 'has-icon': icon, 'has-toggle': type === 'password' }"
-    />
-    <label :for="id || name" v-if="label">
-      {{ label }}
-      <span v-if="required" class="required">*</span>
-    </label>
-    
-    <!-- Password toggle button -->
-    <button 
-      v-if="type === 'password'" 
-      type="button" 
-      class="toggle-password"
-      @click="togglePasswordVisibility"
-      :aria-label="computedType === 'password' ? 'Show password' : 'Hide password'"
-    >
-      {{ computedType === 'password' ? 'Show' : 'Hide' }}
-    </button>
-    
-    <!-- Validation messages -->
+  <div
+    class="form-field"
+    :class="{ 'has-error': error, 'has-success': isValid && modelValue }"
+  >
+  <ClientOnly>
+  <IftaLabel v-if="useIftaLabel && label">
+    <div class="input-wrapper">
+      <InputText
+        v-bind="$attrs"
+        :id="id || name"
+        :name="name"
+        :type="computedType"
+        :value="modelValue"
+        :disabled="disabled"
+        :class="{ 'has-icon': icon, 'has-toggle': type === 'password' }"
+        @input="onInput"
+        @blur="onBlur"
+      />
+
+      <button
+        v-if="type === 'password'"
+        type="button"
+        class="toggle-password"
+        @click="togglePasswordVisibility"
+        :aria-label="isPasswordVisible ? 'Hide password' : 'Show password'"
+      >
+        <span class="toggle-text">
+          {{ isPasswordVisible ? 'Hide' : 'Show' }}
+        </span>
+      </button>
+    </div>
+
+      <label :for="id || name">
+        {{ label }}
+        <span v-if="required" class="required">*</span>
+      </label>
+  </IftaLabel>
+</ClientOnly>
+
+
     <div v-if="error" class="error-message">{{ error }}</div>
     <div v-if="hint && !error" class="hint">{{ hint }}</div>
-    
-    <!-- Character counter -->
+
     <div v-if="maxLength" class="char-counter">
       {{ modelValue?.length || 0 }}/{{ maxLength }}
     </div>
@@ -40,12 +49,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, useAttrs } from 'vue'
+import IftaLabel from 'primevue/iftalabel'
+import InputText from 'primevue/inputtext'
 
 interface Props {
-  modelValue: string
+  modelValue: string | number
   label?: string
-  placeholder?: string
   type?: string
   id?: string
   name?: string
@@ -56,18 +66,24 @@ interface Props {
   maxLength?: number
   pattern?: string
   icon?: boolean
+  useIftaLabel?: boolean 
 }
+
+defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'text',
   required: false,
-  disabled: false
+  disabled: false,
+  useIftaLabel: false     
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
-  'blur': []
+  blur: []
 }>()
+
+const attrs = useAttrs()
 
 const isTouched = ref(false)
 const isPasswordVisible = ref(false)
@@ -82,23 +98,34 @@ const computedType = computed(() => {
 const isValid = computed(() => {
   if (!props.modelValue) return false
   if (props.error) return false
-  
-  // Basic validation
-  if (props.required && !props.modelValue.trim()) return false
-  if (props.maxLength && props.modelValue.length > props.maxLength) return false
-  if (props.pattern && !new RegExp(props.pattern).test(props.modelValue)) return false
-  
+
+  const val = String(props.modelValue)
+
+  if (props.required && !val.trim()) return false
+  if (props.maxLength && val.length > props.maxLength) return false
+  if (props.pattern && !new RegExp(props.pattern).test(val)) return false
+
   return true
 })
 
-const handleInput = (event: Event) => {
+/* ✅ IMPORTANT: forward vee-validate events */
+const onInput = (event: Event) => {
   const value = (event.target as HTMLInputElement).value
+
   emit('update:modelValue', value)
+
+  if (typeof attrs.onInput === 'function') {
+    attrs.onInput(event)
+  }
 }
 
-const handleBlur = () => {
+const onBlur = (event: Event) => {
   isTouched.value = true
   emit('blur')
+
+  if (typeof attrs.onBlur === 'function') {
+    attrs.onBlur(event)
+  }
 }
 
 const togglePasswordVisibility = () => {
@@ -106,110 +133,60 @@ const togglePasswordVisibility = () => {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .form-field {
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-bottom: 16px;
+  width: 100%;
 }
 
-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #334155;
-  margin-bottom: 4px;
-}
-
-.required {
-  color: #ef4444;
-  margin-left: 2px;
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
 
 input {
-  width: 90%;
+  width: 100%;
   padding: 12px 14px;
   font-size: 0.95rem;
-  color: #0f172a;
-  background: #ffffff;
   border: 2px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 12px;
   transition: all 0.2s ease;
-  font-family: inherit;
+
+  &.has-toggle {
+    padding-right: 85px;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #06b6d4;
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+  }
 }
 
-input.has-toggle {
-  padding-right: 60px;
-}
+.toggle-password {
+  position: absolute;
+  right: 8px;
+  background: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 5;
 
-input:focus {
-  outline: none;
-  border-color: #06b6d4;
-  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
-}
-
-input:disabled {
-  background-color: #f8fafc;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-input.has-icon {
-  padding-left: 40px;
-}
-
-/* Error states */
-.form-field.has-error input {
-  border-color: #ef4444;
-}
-
-.form-field.has-error input:focus {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-/* Success states */
-.form-field.has-success input {
-  border-color: #10b981;
-}
-
-.form-field.has-success input:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  .toggle-text {
+    color: #06b6d4;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
 }
 
 .error-message {
   font-size: 0.75rem;
   color: #ef4444;
-  margin-top: 2px;
-}
-
-.hint {
-  font-size: 0.75rem;
-  color: #64748b;
-  margin-top: 2px;
-}
-
-.toggle-password {
-  position: absolute;
-  right: 12px;
-  top: 15px;
-  background: none;
-  border: none;
-  color: #06b6d4;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 4px 8px;
-  z-index: 2;
-  
-}
-
-.char-counter {
-  font-size: 0.75rem;
-  color: #64748b;
-  text-align: right;
   margin-top: 2px;
 }
 </style>

@@ -1,34 +1,16 @@
+// stores/auth.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { useRuntimeConfig, navigateTo } from '#imports'
+import { navigateTo } from '#imports'
+import { authService } from '~/services/auth.service'
 
+/* You can extend your existing User type like this:
 interface User {
   username: string
-  role: string | null
+  role: 'root' | 'employee'
+  companyCompleted: boolean
 }
-
-interface SignupPayload {
-  username: string
-  email: string
-  phone: string
-  password: string
-}
-
-function parseJwt(token: string) {
-  try {
-    const payload = token.split('.')[1]
-    const b64 = payload.replace(/-/g, '+').replace(/_/g, '/')
-    const json = decodeURIComponent(
-      atob(b64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    )
-    return JSON.parse(json)
-  } catch (e) {
-    return null
-  }
-}
+*/
 
 export const useAuthStore = defineStore(
   'auth',
@@ -38,100 +20,103 @@ export const useAuthStore = defineStore(
 
     const loggedIn = computed(() => !!token.value)
     const role = computed(() => user.value?.role || null)
+    const companyCompleted = computed(
+      () => user.value?.companyCompleted ?? false
+    )
 
-    // ---------------- LOGIN ----------------
-    async function login(username: string, password: string) {
+    /* ----------------------------------
+       Helper: Decode JWT
+    ----------------------------------- */
+    function parseJwt(token: string) {
       try {
-        const config = useRuntimeConfig()
-        const apiBase = config.public?.apiBase || ''
+        return JSON.parse(atob(token.split('.')[1]))
+      } catch {
+        return null
+      }
+    }
 
-        const url = `${apiBase}/api/auth/login`
-        console.debug('[auth] POST', url)
+    /* ----------------------------------
+       LOGIN (ROOT / EMPLOYEE)
+    ----------------------------------- */
+    async function login(payload: {
+      username: string
+      password: string
+      role: 'root' | 'employee'
+    }) {
+      try {
+        const res = await authService.login(payload)
 
-        const res = (await $fetch(url, {
-          method: 'POST',
-          body: { username, password }
-        })) as { token?: string; message?: string }
-
-        console.debug('[auth] response', {
-          ok: !!res?.token,
-          message: res?.message
-        })
-
-        if (!res || !res.token) {
+        if (!res?.token) {
           throw new Error(res?.message || 'Invalid credentials')
         }
 
         token.value = res.token
-
-        const payload = parseJwt(res.token)
-        const roleValue =
-          payload?.roleName ??
-          payload?.role_name ??
-          payload?.roleId ??
-          payload?.role ??
-          null
+        const decoded = parseJwt(res.token)
 
         user.value = {
-          username,
-          role: roleValue ? String(roleValue) : null
+          username: payload.username,
+          role: String(
+            decoded?.roleName ??
+            decoded?.role ??
+            payload.role
+          ) as 'root' | 'employee',
+
+          // 🔑 THIS IS THE KEY PART
+          companyCompleted: Boolean(
+            decoded?.companyCompleted ?? false
+          )
         }
 
+        /* ----------------------------------
+           ROUTING LOGIC (FINAL)
+        ----------------------------------- */
         if (process.client) {
-          await navigateTo('/dashboard')
+          // Root → must complete company first
+          if (user.value.role === 'root' && !user.value.companyCompleted) {
+            await navigateTo('/onboarding/company')
+          } else {
+            await navigateTo('/dashboard')
+          }
         }
       } catch (err: any) {
         throw new Error(err?.message || 'Login failed')
       }
     }
 
-    // ---------------- SIGNUP (Admin Basic) ----------------
+    /* ----------------------------------
+       CALLED AFTER COMPANY SETUP
+    ----------------------------------- */
+    function markCompanyCompleted() {
+      if (user.value) {
+        user.value.companyCompleted = true
+      }
+    }
+
+    /* ----------------------------------
+       SIGNUP (ROOT ACCOUNT ONLY)
+    ----------------------------------- */
     async function signup(payload: SignupPayload) {
       try {
-        const config = useRuntimeConfig()
-        const apiBase = config.public?.apiBase || ''
+        const res = await authService.signup(payload)
 
-        const url = `${apiBase}/api/auth/signup`
-        console.debug('[auth] POST', url)
-
-        const res = (await $fetch(url, {
-          method: 'POST',
-          body: payload
-        })) as { token?: string; message?: string }
-
-        console.debug('[auth] response', {
-          ok: !!res?.token,
-          message: res?.message
-        })
-
-        if (!res || !res.token) {
+        if (!res?.user_id) {
           throw new Error(res?.message || 'Signup failed')
         }
 
-        token.value = res.token
-
-        const jwtPayload = parseJwt(res.token)
-        const roleValue =
-          jwtPayload?.roleName ??
-          jwtPayload?.role_name ??
-          jwtPayload?.roleId ??
-          jwtPayload?.role ??
-          null
-
-        user.value = {
-          username: payload.username,
-          role: roleValue ? String(roleValue) : null
-        }
-
+        // After signup → go to login
         if (process.client) {
-          await navigateTo('/dashboard')
+          await navigateTo('/login')
         }
+
+        return res
       } catch (err: any) {
         throw new Error(err?.message || 'Signup failed')
       }
     }
 
-    // ---------------- LOGOUT ----------------
+    /* ----------------------------------
+       LOGOUT
+    ----------------------------------- */
     function logout() {
       user.value = null
       token.value = null
@@ -143,12 +128,12 @@ export const useAuthStore = defineStore(
       token,
       loggedIn,
       role,
+      companyCompleted,
       login,
       signup,
-      logout
+      logout,
+      markCompanyCompleted
     }
   },
-  {
-    persist: true
-  }
+  { persist: true }
 )

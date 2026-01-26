@@ -28,7 +28,7 @@ interface Employee {
   email: string
   phone: string
   gender: string
-  date_of_birth: string
+  date_of_birth: Date | null
   join_date: string
   department: string
   salary?: number

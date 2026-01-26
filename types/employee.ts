@@ -5,8 +5,8 @@ export interface Employee {
   email: string
   phone: string
   gender: string
-  date_of_birth: string
-  join_date: string
+  date_of_birth: Date | null
+  join_date: Date | null
   salary?: number
   department: string
   role_id?: number | null

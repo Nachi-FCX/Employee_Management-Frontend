@@ -1,8 +1,6 @@
 
 <template>
-  <UFormField :name="name" :label="label">
-    <USelect v-model="model" :items="items" class="w-47" />
-  </UFormField>
+  
 </template>
 
 <script setup lang="ts">

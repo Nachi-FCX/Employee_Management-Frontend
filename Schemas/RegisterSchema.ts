@@ -11,9 +11,9 @@ export const EmployeeValidationSchema = z.object({
 
   gender: z.string().min(1, 'Please select a gender'),
 
-  date_of_birth: z.string().min(1, 'Date of birth is required'),
+  date_of_birth: z.date().nullable(),
 
-  join_date: z.string().min(1, 'Join date is required'),
+  join_date: z.date().nullable(),
 
   department: z.string().min(1, 'Please select a department'),
 

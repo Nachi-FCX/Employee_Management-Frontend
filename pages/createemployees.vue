@@ -1,9 +1,9 @@
 <template>
   <UContainer class="min-h-screen w-full bg-slate-50 flex justify-center p-6">
-    <UCard class="w-full max-w-6xl rounded-2xl shadow-xl mt-6">
+    <UCard class="w-full max-w-6xl rounded-2xl shadow-xl mt-6 ">
       <template #header>
-        <div class="flex flex-col gap-2 border-b pb-4">
-          <h2 class="text-2xl font-semibold text-slate-800">
+        <div class="flex justify-center flex-col gap-2 border-b pb-4 " >
+          <h2 class=" text-2xl font-semibold text-slate-800 text-center">
             Employee Creation
           </h2>
           <p class="text-sm text-slate-500">
@@ -15,56 +15,65 @@
     <UForm :schema="EmployeeValidationSchema" :state="formState" @submit="handleSubmit" >
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
 
-        
+        <BaseInput
+            name="first_name"
+            label="First Name"
+            v-model="formState.first_name"
+            placeholder="Enter First Name"
+            :useIftaLabel="true"
+          />
 
-        <FormInputField
-          name="first_name"
-          label="First Name"
-          v-model="formState.first_name"
-          placeholder="Enter first name"
-        />
 
-        <FormInputField
-          name="last_name"
-          label="Last Name"
-          v-model="formState.last_name"
-          placeholder="Enter last name"
-        />
+        <BaseInput
+            name="last_name_name"
+            label="Last Name"
+            v-model="formState.last_name"
+            placeholder="Enter Last Name"
+            :useIftaLabel="true"
+          />
 
-        <FormInputField
-          name="email"
-          label="Email"
-          type="email"
-          v-model="formState.email"
-          placeholder="Enter email"
-        />
+       <BaseInput
+            name="email"
+            label="Email"
+            v-model="formState.email"
+            placeholder="Enter Email"
+            :useIftaLabel="true"
+          />
 
-        <FormInputField
-          name="phone"
-          label="Phone Number"
-          type="tel"
-          v-model="formState.phone"
-          placeholder="Enter phone number"
-        />
+        <BaseInput
+            name="phone_number"
+            label="Phone Number"
+            v-model="formState.phone"
+            placeholder="Enter Phone Number"
+            :useIftaLabel="true"
+          />
 
-        <dropdownfield
+
+        <BaseInput
           name="gender"
           label="Gender"
           v-model="formState.gender"
           :items="['Male', 'Female', 'Other']"
+          :useIftalabel="true"
+          
         />
 
+     
         <datefield
             class="w-full"
             name="date_of_birth"
             label="Date of Birth"
             v-model="formState.date_of_birth"
+            :useIftaLabel="true"
             />
+
+
         <datefield
             class="w-full"
             name="join_date"
             label="Join Date"
             v-model="formState.join_date"
+            :useIftaLabel="true"
             />
 
         <dropdownfield
@@ -77,7 +86,7 @@
 
 
 
-        <FormInputField
+        <BaseInput
           name="salary"
           label="Salary"
           type="number"
@@ -89,9 +98,9 @@
       </div>
 
       <div class="flex justify-center mt-8">
-        <UButton size="lg" color="primary" type="submit" class="px-10">
+        <BaseButton>
           Create Employee
-        </UButton>
+        </BaseButton>
       </div>
     </UForm>
   </UCard>
@@ -101,16 +110,20 @@
 <script setup lang="ts">
 import FormInputField from '~/components/forminputfield.vue'
 import dropdownfield from '~/components/dropdownfield.vue'
-import Datefield from '~/components/datefield.vue'
+import datefield from '~/components/datefield.vue'
+
+// import DatePicker from 'primevue/datepicker';
+
 import { EmployeeValidationSchema } from '../Schemas/RegisterSchema'
 import type { Employee } from '~/types/employee'
-
+import BaseInput from '~/components/BaseInput.vue'
+import BaseButton from '~/components/BaseButton.vue'
 interface EmployeeCreate {
   employee_code: string
   first_name: string
   last_name: string
-  date_of_birth:string
-  join_date:string
+  date_of_birth:Date | null
+  join_date:Date | null
   department:string
   email: string
   phone: string
@@ -124,8 +137,8 @@ const formState = ref<EmployeeCreate>({
   employee_code: '',
   first_name: '',
   last_name: '',
-  date_of_birth: '',
-  join_date:'',
+  date_of_birth: null,
+  join_date:null,
   department:'',
   email: '',
   phone: '',
@@ -145,8 +158,8 @@ employees.value.push({ ...formState.value })
     employee_code: '',
     first_name: '',
     last_name: '',
-    date_of_birth:'',
-    join_date:'',
+    date_of_birth:null,
+    join_date:null,
     department:'',
     email: '',
     phone: '',

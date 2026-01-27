@@ -17,5 +17,5 @@ export const EmployeeValidationSchema = z.object({
 
   department: z.string().min(1, 'Please select a department'),
 
-  salary: z.number().nullable()
+  salary: z.string()
 })

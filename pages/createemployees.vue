@@ -93,7 +93,7 @@
           type="number"
           v-model="formState.salary"
           placeholder="Enter salary"
-          :useIftalabel="true"
+          :useIftaLabel="true"
         />
         
 
@@ -120,6 +120,7 @@ import { EmployeeValidationSchema } from '../Schemas/RegisterSchema'
 import type { Employee } from '~/types/employee'
 import BaseInput from '~/components/BaseInput.vue'
 import BaseButton from '~/components/BaseButton.vue'
+
 interface EmployeeCreate {
   employee_code: string
   first_name: string
@@ -130,7 +131,7 @@ interface EmployeeCreate {
   email: string
   phone: string
   gender: string
-  salary: number | null
+  salary: string
   department_id: number | null
   role_id: number | null
 }
@@ -145,7 +146,7 @@ const formState = ref<EmployeeCreate>({
   email: '',
   phone: '',
   gender: '',
-  salary: null,
+  salary: '',
   department_id: null,
   role_id: null
 })
@@ -166,7 +167,7 @@ employees.value.push({ ...formState.value })
     email: '',
     phone: '',
     gender: '',
-    salary: null,
+    salary: '',
     department_id: null,
     role_id: null
   }

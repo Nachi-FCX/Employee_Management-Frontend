@@ -54,7 +54,7 @@ import IftaLabel from 'primevue/iftalabel'
 import InputText from 'primevue/inputtext'
 
 interface Props {
-  modelValue: string | number | null
+  modelValue: string 
   label?: string
   type?: string
   id?: string

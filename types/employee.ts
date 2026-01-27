@@ -7,7 +7,7 @@ export interface Employee {
   gender: string
   date_of_birth: Date | null
   join_date: Date | null
-  salary?: number
+  salary: string
   department: string
   role_id?: number | null
 

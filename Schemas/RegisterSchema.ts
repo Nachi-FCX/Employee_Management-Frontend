@@ -17,5 +17,5 @@ export const EmployeeValidationSchema = z.object({
 
   department: z.string().min(1, 'Please select a department'),
 
-  salary: z.number({invalid_type_error: 'Salary must be a number'}).min(0, 'Salary must be a positive number')
+  salary: z.number().nullable()
 })

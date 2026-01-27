@@ -54,7 +54,7 @@ import IftaLabel from 'primevue/iftalabel'
 import InputText from 'primevue/inputtext'
 
 interface Props {
-  modelValue: string | number
+  modelValue: string | number | null
   label?: string
   type?: string
   id?: string
@@ -79,7 +79,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: string | number | null]
   blur: []
 }>()
 
@@ -112,7 +112,7 @@ const isValid = computed(() => {
 const onInput = (event: Event) => {
   const value = (event.target as HTMLInputElement).value
 
-  emit('update:modelValue', value)
+  emit('update:modelValue', value ? null : value)
 
   if (typeof attrs.onInput === 'function') {
     attrs.onInput(event)

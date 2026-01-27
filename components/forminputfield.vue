@@ -1,14 +1,14 @@
 <template>
-    <!--
+    
     <UFormField  :name="name" :label="label">
       <UInput :type="type" :placeholder="placeholder" v-model="model" class="form-input"/>
     </UFormField> 
-    -->
+  
 
-    <IftaLabel>
+    <!-- <IftaLabel>
     <InputText :id="name" v-model="model" :invalid="!value" :placeholder="placeholder"/>
      <label for="name">{{label}}</label>
-    </IftaLabel>
+    </IftaLabel> -->
     
     
 </template>

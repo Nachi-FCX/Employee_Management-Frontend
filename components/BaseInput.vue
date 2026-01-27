@@ -3,6 +3,11 @@
     class="form-field"
     :class="{ 'has-error': error, 'has-success': isValid && modelValue }"
   >
+
+  <div
+    class="form-field"
+    :class="{ 'has-error': error, 'has-success': isValid && modelValue }"
+  >
   <ClientOnly>
   <IftaLabel v-if="useIftaLabel && label">
     <div class="input-wrapper">
@@ -46,6 +51,7 @@
       {{ modelValue?.length || 0 }}/{{ maxLength }}
     </div>
   </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -54,7 +60,7 @@ import IftaLabel from 'primevue/iftalabel'
 import InputText from 'primevue/inputtext'
 
 interface Props {
-  modelValue: string | number
+  modelValue: string 
   label?: string
   type?: string
   id?: string
@@ -71,19 +77,21 @@ interface Props {
 
 defineOptions({ inheritAttrs: false })
 
+
 const props = withDefaults(defineProps<Props>(), {
   type: 'text',
   required: false,
   disabled: false,
-  useIftaLabel: false     
+  useIftaLabel: false   
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: string | number | null]
   blur: []
 }>()
 
 const attrs = useAttrs()
+
 
 const isTouched = ref(false)
 const isPasswordVisible = ref(false)
@@ -108,11 +116,12 @@ const isValid = computed(() => {
   return true
 })
 
+
 /* ✅ IMPORTANT: forward vee-validate events */
 const onInput = (event: Event) => {
   const value = (event.target as HTMLInputElement).value
 
-  emit('update:modelValue', value)
+  emit('update:modelValue', value ? null : value)
 
   if (typeof attrs.onInput === 'function') {
     attrs.onInput(event)
@@ -126,6 +135,10 @@ const onBlur = (event: Event) => {
   if (typeof attrs.onBlur === 'function') {
     attrs.onBlur(event)
   }
+
+  if (typeof attrs.onBlur === 'function') {
+    attrs.onBlur(event)
+  }
 }
 
 const togglePasswordVisibility = () => {
@@ -133,11 +146,13 @@ const togglePasswordVisibility = () => {
 }
 </script>
 
+
 <style scoped lang="scss">
 .form-field {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  width: 100%;
   width: 100%;
 }
 
@@ -150,16 +165,43 @@ const togglePasswordVisibility = () => {
 
 input {
   width: 100%;
+  width: 100%;
   padding: 12px 14px;
   font-size: 0.95rem;
   border: 2px solid #e2e8f0;
+  border-radius: 12px;
   border-radius: 12px;
   transition: all 0.2s ease;
 
   &.has-toggle {
     padding-right: 85px;
   }
+  &.has-toggle {
+    padding-right: 85px;
+  }
 
+  &:focus {
+    outline: none;
+    border-color: #06b6d4;
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+  }
+}
+
+.toggle-password {
+  position: absolute;
+  right: 8px;
+  background: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 5;
+
+  .toggle-text {
+    color: #06b6d4;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
   &:focus {
     outline: none;
     border-color: #06b6d4;
@@ -190,3 +232,4 @@ input {
   margin-top: 2px;
 }
 </style>
+

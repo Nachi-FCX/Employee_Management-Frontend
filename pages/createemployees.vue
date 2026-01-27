@@ -49,7 +49,7 @@
           />
 
 
-        <BaseInput
+        <dropdownfield
           name="gender"
           label="Gender"
           v-model="formState.gender"
@@ -82,6 +82,7 @@
             label="Department"
             v-model="formState.department"
             :items="['HR', 'Engineering', 'Finance', 'Marketing']"
+            
             />
 
 
@@ -92,13 +93,14 @@
           type="number"
           v-model="formState.salary"
           placeholder="Enter salary"
+          :useIftaLabel="true"
         />
         
 
       </div>
 
       <div class="flex justify-center mt-8">
-        <BaseButton>
+        <BaseButton class="create-employee">
           Create Employee
         </BaseButton>
       </div>
@@ -108,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import FormInputField from '~/components/forminputfield.vue'
+
 import dropdownfield from '~/components/dropdownfield.vue'
 import datefield from '~/components/datefield.vue'
 
@@ -118,6 +120,7 @@ import { EmployeeValidationSchema } from '../Schemas/RegisterSchema'
 import type { Employee } from '~/types/employee'
 import BaseInput from '~/components/BaseInput.vue'
 import BaseButton from '~/components/BaseButton.vue'
+
 interface EmployeeCreate {
   employee_code: string
   first_name: string
@@ -128,7 +131,7 @@ interface EmployeeCreate {
   email: string
   phone: string
   gender: string
-  salary?: number 
+  salary: string
   department_id: number | null
   role_id: number | null
 }
@@ -143,7 +146,7 @@ const formState = ref<EmployeeCreate>({
   email: '',
   phone: '',
   gender: '',
-  salary: undefined,
+  salary: '',
   department_id: null,
   role_id: null
 })
@@ -164,7 +167,7 @@ employees.value.push({ ...formState.value })
     email: '',
     phone: '',
     gender: '',
-    salary: undefined,
+    salary: '',
     department_id: null,
     role_id: null
   }

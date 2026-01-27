@@ -3,41 +3,6 @@
     class="form-field"
     :class="{ 'has-error': error, 'has-success': isValid && modelValue }"
   >
-  <ClientOnly>
-  <IftaLabel v-if="useIftaLabel && label">
-    <div class="input-wrapper">
-      <InputText
-        v-bind="$attrs"
-        :id="id || name"
-        :name="name"
-        :type="computedType"
-        :value="modelValue"
-        :disabled="disabled"
-        :class="{ 'has-icon': icon, 'has-toggle': type === 'password' }"
-        @input="onInput"
-        @blur="onBlur"
-      />
-
-      <button
-        v-if="type === 'password'"
-        type="button"
-        class="toggle-password"
-        @click="togglePasswordVisibility"
-        :aria-label="isPasswordVisible ? 'Hide password' : 'Show password'"
-      >
-        <span class="toggle-text">
-          {{ isPasswordVisible ? 'Hide' : 'Show' }}
-        </span>
-      </button>
-    </div>
-
-      <label :for="id || name">
-        {{ label }}
-        <span v-if="required" class="required">*</span>
-      </label>
-  </IftaLabel>
-</ClientOnly>
-
 
   <div
     class="form-field"
@@ -86,12 +51,10 @@
       {{ modelValue?.length || 0 }}/{{ maxLength }}
     </div>
   </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, useAttrs } from 'vue'
-import IftaLabel from 'primevue/iftalabel'
-import InputText from 'primevue/inputtext'
 import { ref, computed, useAttrs } from 'vue'
 import IftaLabel from 'primevue/iftalabel'
 import InputText from 'primevue/inputtext'
@@ -110,20 +73,16 @@ interface Props {
   pattern?: string
   icon?: boolean
   useIftaLabel?: boolean 
-  useIftaLabel?: boolean 
 }
 
 defineOptions({ inheritAttrs: false })
 
-defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'text',
   required: false,
   disabled: false,
-  useIftaLabel: false     
-  disabled: false,
-  useIftaLabel: false     
+  useIftaLabel: false   
 })
 
 const emit = defineEmits<{
@@ -133,7 +92,6 @@ const emit = defineEmits<{
 
 const attrs = useAttrs()
 
-const attrs = useAttrs()
 
 const isTouched = ref(false)
 const isPasswordVisible = ref(false)
@@ -155,18 +113,10 @@ const isValid = computed(() => {
   if (props.maxLength && val.length > props.maxLength) return false
   if (props.pattern && !new RegExp(props.pattern).test(val)) return false
 
-
-  const val = String(props.modelValue)
-
-  if (props.required && !val.trim()) return false
-  if (props.maxLength && val.length > props.maxLength) return false
-  if (props.pattern && !new RegExp(props.pattern).test(val)) return false
-
   return true
 })
 
-/* ✅ IMPORTANT: forward vee-validate events */
-const onInput = (event: Event) => {
+
 /* ✅ IMPORTANT: forward vee-validate events */
 const onInput = (event: Event) => {
   const value = (event.target as HTMLInputElement).value
@@ -178,7 +128,6 @@ const onInput = (event: Event) => {
   }
 }
 
-const onBlur = (event: Event) => {
 const onBlur = (event: Event) => {
   isTouched.value = true
   emit('blur')
@@ -197,7 +146,7 @@ const togglePasswordVisibility = () => {
 }
 </script>
 
-<style scoped lang="scss">
+
 <style scoped lang="scss">
 .form-field {
   display: flex;
@@ -207,11 +156,6 @@ const togglePasswordVisibility = () => {
   width: 100%;
 }
 
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
 .input-wrapper {
   position: relative;
   display: flex;

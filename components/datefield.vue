@@ -1,29 +1,23 @@
 <template>
 
- <div class="form-field">
+  <div class="form-field">
     <ClientOnly>
-      <IftaLabel v-if="label">
-        <template #default>
-          <DatePicker v-model="model" v-bind="$attrs" :name="name" class="date-input" showIcon 
-          dateFormat="yy-mm-dd"
-          />
-
-          <label :for="name">
-            {{ label }}
-          </label>
-        </template>
+      <IftaLabel>
+        <DatePicker
+          v-model="model":inputId="name":name="name" showIcon iconDisplay="input" variant="filled"
+          dateFormat="yy-mm-dd"class="w-full"
+        />
+        <label :for="name">{{ label }}</label>
       </IftaLabel>
     </ClientOnly>
-
-   
   </div>
-
 </template>
 
 <script setup lang="ts">
 // import type DatePicker from 'primevue/datepicker';
 
 import DatePicker from 'primevue/datepicker';
+import type FloatLabel from 'primevue/floatlabel';
 
 import type IftaLabel from 'primevue/iftalabel';
 
@@ -50,18 +44,4 @@ const model = computed({
 
 </script>
 
-<style scoped lang="scss">
-
-
-input {
-  width: 100%;
-  padding: 12px 14px;
-  font-size: 0.95rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  // transition: all 0.2s ease;
-}
-
-
-</style>
 

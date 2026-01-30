@@ -1,4 +1,5 @@
 <template>
+  <ClientOnly>
   <div class="login-page">
     <BackgroundDecoration />
 
@@ -114,6 +115,7 @@
       </form>
     </div>
   </div>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">

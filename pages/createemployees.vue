@@ -128,7 +128,7 @@ interface EmployeeCreate {
   email: string
   phone: string
   gender: string
-  salary?: number 
+  salary: number | undefined
   department_id: number | null
   role_id: number | null
 }
@@ -164,7 +164,7 @@ employees.value.push({ ...formState.value })
     email: '',
     phone: '',
     gender: '',
-    salary: undefined,
+    salary: 0,
     department_id: null,
     role_id: null
   }

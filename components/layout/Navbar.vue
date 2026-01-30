@@ -1,89 +1,270 @@
 <template>
   <nav v-if="showNavbar" class="navbar">
+    
     <div class="nav-left">
       <NuxtLink to="/" class="brand">Fincorpx</NuxtLink>
     </div>
 
-    <div class="nav-right">
-      <div v-if="user" class="user-info">
-        <span class="username">{{ user.username }}</span>
+    
+    <div class="nav-center">
+      <div class="search-box">
+        <i class="pi pi-search"></i>
+        <input 
+          v-model="searchQuery" 
+          placeholder="Search" 
+          @keyup.enter="handleSearch"
+          @input="console.log('Typing:', searchQuery)"
+        />
       </div>
-      <button
-        v-if="loggedIn"
-        class="btn-logout"
-        @click="handleLogout"
-      >
-        Logout
-      </button>
     </div>
+
+    
+    <div class="nav-right">
+      
+      <button class="attendance-btn" @click="openAttendanceDialog">
+        <i class="pi pi-calendar-clock"></i>
+        <span>Attendance</span>
+      </button>
+
+      
+      <div class="avatar">U</div>
+    </div>
+
+    
+    <Dialog
+      v-model:visible="showAttendanceDialog"
+      modal
+      header="Attendance"
+      :style="{ width: '320px' }"
+    >
+      <div class="attendance-content">
+        <p class="date">{{ today }}</p>
+
+        
+        <div class="toggle-row">
+          <span>Status</span>
+          <InputSwitch
+            v-model="checkedIn"
+            @change="handleToggle"
+          />
+        </div>
+
+        
+        <p class="status" v-if="checkedIn">
+          🟢 Checked in at {{ checkInTime }}
+        </p>
+        <p class="status off" v-else>
+          🔴 Not checked in
+        </p>
+      </div>
+    </Dialog>
+
+    
+    <Dialog
+      v-model:visible="showConfirmDialog"
+      modal
+      header="Confirm Checkout"
+      :style="{ width: '300px' }"
+    >
+      <p>Are you sure you want to check out?</p>
+
+      <div class="confirm-actions">
+        <Button
+          label="Cancel"
+          severity="secondary"
+          @click="cancelCheckout"
+        />
+        <Button
+          label="Confirm"
+          severity="danger"
+          @click="confirmCheckout"
+        />
+      </div>
+    </Dialog>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useAuthStore } from '~/stores/auth'
-import { useRoute, navigateTo } from '#imports'
+import { ref, computed } from 'vue'
+import { useRoute } from '#imports'
+import Dialog from 'primevue/dialog'
+import InputSwitch from 'primevue/inputswitch'
+import Button from 'primevue/button'
 
-const auth = useAuthStore()
 const route = useRoute()
 
-const user = computed(() => auth.user)
-const loggedIn = computed(() => auth.loggedIn)
-
-/**
- * Hide navbar on login & signup pages
- */
 const showNavbar = computed(() => {
-  const hiddenRoutes = ['/login', '/signup']
-  return !hiddenRoutes.includes(route.path)
+  return !['/login', '/signup'].includes(route.path)
 })
 
-function handleLogout() {
-  auth.logout()
-  if (process.client) navigateTo('/login')
+// Search State
+const searchQuery = ref('')
+
+function handleSearch() {
+  console.log('🔍 Search triggered!')
+  console.log('Search query:', searchQuery.value)
+  if (searchQuery.value.trim()) {
+    console.log('Searching for:', searchQuery.value)
+  }
+}
+
+// Attendance State
+const showAttendanceDialog = ref(false)
+const showConfirmDialog = ref(false)
+
+const checkedIn = ref(false)
+const checkInTime = ref('')
+
+const today = new Date().toDateString()
+
+function handleToggle() {
+  
+  if (checkedIn.value) {
+    checkInTime.value = new Date().toLocaleTimeString()
+    showAttendanceDialog.value = false
+  } 
+  
+  else {
+    showConfirmDialog.value = true
+  }
+}
+
+function cancelCheckout() {
+  checkedIn.value = true
+  showConfirmDialog.value = false
+}
+
+function confirmCheckout() {
+  checkedIn.value = false
+  checkInTime.value = ''
+  showConfirmDialog.value = false
+  showAttendanceDialog.value = false
+}
+
+function openAttendanceDialog() {
+  console.log('🔔 Attendance button clicked!')
+  showAttendanceDialog.value = true
+  console.log('Dialog state:', showAttendanceDialog.value)
 }
 </script>
 
 <style scoped>
+
 .navbar {
-  height: 64px;
-  background-color: #0f172a;
-  color: #fff;
-  display: flex;
+  height: 60px;
+  background-color: #ffffff;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
   padding: 0 20px;
-  box-shadow: 0 6px 18px rgba(2,6,23,0.08);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      width: 100vw;
+    /* position: fixed; */
 }
 
 .brand {
-  color: #06b6d4;
+  font-size: 1.3rem;
   font-weight: 700;
+  color: #2563eb;
   text-decoration: none;
-  font-size: 1rem;
 }
+
+
+.nav-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #f3f4f6;
+  padding: 6px 15px;
+  border-radius: 800px;
+  width: 320px;
+  gap: 10px;
+ 
+}
+ .pi-search{
+font-size: 13px;
+    color: grey;
+  }
+.search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  flex: 1;
+  padding: 4px 6px;
+}
+
 
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
-.username {
-  color: #cbd5e1;
-  font-weight: 600;
-}
 
-.btn-logout {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.12);
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 8px;
+.attendance-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #eef2ff;
+  color: #374151;
+  border: none;
+  padding: 3px 13px;
+  border-radius: 999px;
   cursor: pointer;
+  font-weight: 500;
 }
 
-.btn-logout:hover {
-  background: rgba(255,255,255,0.03);
+.attendance-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+
+.date {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status.off {
+  color: #dc2626;
+}
+
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  background: #2563eb;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
 }
 </style>

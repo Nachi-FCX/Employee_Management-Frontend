@@ -1,9 +1,9 @@
 {
-  "_hash": "zwmnMAXYiwDKiJ0ReERq4_7kzcEXxDYCBAhhdMciAjo",
+  "_hash": "XXi_mYs70GPk98gJA0sr4oMj8RJQrp307GkQMPGST7o",
   "project": {
     "rootDir": "D:/fincorpx/Employee_Management-Frontend"
   },
   "versions": {
-    "nuxt": "4.2.2"
+    "nuxt": "4.3.0"
   }
 }

@@ -41,7 +41,7 @@ export const authService = {
   ----------------------------------- */
   async login(payload: LoginPayload) {
     return await $fetch<LoginResponse>(
-      `${this.getApiBase()}/api/auth/login`,
+      `${this.getApiBase()}/login`,
       {
         method: 'POST',
         body: payload
@@ -54,7 +54,7 @@ export const authService = {
   ----------------------------------- */
   async signupRoot(payload: RootSignupPayload) {
     return await $fetch<SignupResponse>(
-      `${this.getApiBase()}/api/auth/root/signup`,
+      `${this.getApiBase()}/api/root/signup`,
       {
         method: 'POST',
         body: payload

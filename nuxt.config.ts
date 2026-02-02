@@ -22,7 +22,7 @@ export default defineNuxtConfig({
   composables: [{ path: '~/composables', pathPrefix: false }],
   runtimeConfig: {
     public: {
-      apiBase: 'http://localhost:4000'
+      apiBase: process.env.BaseUrl
     }
   }
 })

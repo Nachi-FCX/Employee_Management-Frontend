@@ -1,7 +1,3 @@
-/* =========================
-   TYPES
-========================= */
-
 export interface LoginPayload {
   username: string
   password: string
@@ -27,21 +23,16 @@ export interface SignupResponse {
   employee_id?: number
 }
 
-/* =========================
-   AUTH SERVICE
-========================= */
+
 
 export const authService = {
   getApiBase() {
     return useRuntimeConfig().public.apiBase || ''
   },
 
-  /* ----------------------------------
-     LOGIN (ROOT / EMPLOYEE)
-  ----------------------------------- */
   async login(payload: LoginPayload) {
     return await $fetch<LoginResponse>(
-      `${this.getApiBase()}/api/auth/login`,
+      `${this.getApiBase()}/api/login`,
       {
         method: 'POST',
         body: payload
@@ -49,12 +40,10 @@ export const authService = {
     )
   },
 
-  /* ----------------------------------
-     ROOT SIGNUP (STEP-2 / SKIP)
-  ----------------------------------- */
+
   async signupRoot(payload: RootSignupPayload) {
     return await $fetch<SignupResponse>(
-      `${this.getApiBase()}/api/auth/root/signup`,
+      `${this.getApiBase()}/api/root/signup`,
       {
         method: 'POST',
         body: payload
@@ -62,12 +51,10 @@ export const authService = {
     )
   },
 
-  /* ----------------------------------
-     GENERIC SIGNUP (OPTIONAL / LEGACY)
-  ----------------------------------- */
+
   async signup(payload: any) {
     return await $fetch<SignupResponse>(
-      `${this.getApiBase()}/api/auth/signup`,
+      `${this.getApiBase()}/api/signup`,
       {
         method: 'POST',
         body: payload

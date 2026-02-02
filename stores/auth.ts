@@ -4,13 +4,6 @@ import { ref, computed } from 'vue'
 import { navigateTo } from '#imports'
 import { authService } from '~/services/auth.service'
 
-/* You can extend your existing User type like this:
-interface User {
-  username: string
-  role: 'root' | 'employee'
-  companyCompleted: boolean
-}
-*/
 
 export const useAuthStore = defineStore(
   'auth',

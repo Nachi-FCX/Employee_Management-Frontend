@@ -1,3 +1,5 @@
+import { config } from "process"
+
 export interface LoginPayload {
   username: string
   password: string
@@ -24,41 +26,18 @@ export interface SignupResponse {
 }
 
 
-
 export const authService = {
-  getApiBase() {
-    return useRuntimeConfig().public.apiBase || ''
-  },
-
   async login(payload: LoginPayload) {
-    return await $fetch<LoginResponse>(
-      `${this.getApiBase()}/api/login`,
-      {
-        method: 'POST',
-        body: payload
-      }
-    )
+    const { $api } = useNuxtApp()
+    const { data } = await $api.post('/api/login', payload)
+    return data
   },
-
 
   async signupRoot(payload: RootSignupPayload) {
-    return await $fetch<SignupResponse>(
-      `${this.getApiBase()}/api/root/signup`,
-      {
-        method: 'POST',
-        body: payload
-      }
-    )
-  },
-
-
-  async signup(payload: any) {
-    return await $fetch<SignupResponse>(
-      `${this.getApiBase()}/api/signup`,
-      {
-        method: 'POST',
-        body: payload
-      }
-    )
+    const { $api } = useNuxtApp()
+    const { data } = await $api.post('/api/root/signup', payload)
+    return data
   }
 }
+
+

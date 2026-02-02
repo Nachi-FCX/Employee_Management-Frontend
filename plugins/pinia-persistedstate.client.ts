@@ -1,5 +1,3 @@
-// plugins/pinia-persistedstate.client.ts
-// plugins/pinia-persistedstate.client.ts
 import { defineNuxtPlugin } from '#app'
 import type { Pinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'

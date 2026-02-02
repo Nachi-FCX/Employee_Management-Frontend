@@ -2,27 +2,25 @@
 
 
 export default defineNuxtConfig({
-  ssr: true,
-  modules: ['@pinia/nuxt','@nuxt/ui'],
+ssr: true,
+modules: ['@pinia/nuxt','@nuxt/ui'],
     // modules: ['],
- css: [
+css: [
   'primeicons/primeicons.css',
   '~/assets/styles/main.scss',
   '~/assets/styles/main.css',
-
-
-
 ],
-
-  
-  imports: {
+imports: {
     dirs: ['stores']
   },
-  components: [{ path: '~/components', pathPrefix: false }],
-  composables: [{ path: '~/composables', pathPrefix: false }],
-  runtimeConfig: {
+components: [{ path: '~/components', pathPrefix: false }],
+
+composables: [{ path: '~/composables', pathPrefix: false }],
+
+runtimeConfig: {
     public: {
-      apiBase: process.env.BaseUrl
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL
     }
   }
 })
+

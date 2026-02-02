@@ -121,7 +121,7 @@ const isValid = computed(() => {
 const onInput = (event: Event) => {
   const value = (event.target as HTMLInputElement).value
 
-  emit('update:modelValue', value ? null : value)
+  emit('update:modelValue', value)
 
   if (typeof attrs.onInput === 'function') {
     attrs.onInput(event)

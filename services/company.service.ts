@@ -12,7 +12,7 @@ export const companyService = {
   },
 
   async setupCompany(payload: CompanyPayload) {
-    const url = `${this.getApiBase()}/api/company/setup`
+    const url = `${this.getApiBase()}/api/company`
 
     return await $fetch(url, {
       method: 'POST',

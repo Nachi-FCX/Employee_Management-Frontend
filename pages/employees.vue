@@ -25,7 +25,11 @@
 </template>
 
 <script setup lang="ts">
+
+import { fetchEmployees, deleteEmployeeById } from "~/services/employee.service";
+
 interface Employee {
+  id:number
   first_name: string
   last_name: string
   email: string
@@ -38,6 +42,17 @@ interface Employee {
 }
 
 const employees = useState<Employee[]>('employees', () => [])
+
+onMounted(async () => {
+  try {
+    const res = await fetchEmployees();
+
+
+    employees.value = res.data.data || res.data;
+  } catch (error) {
+    console.error("Failed to fetch employees", error);
+  }
+});
 
 const columns = [
   {
@@ -58,9 +73,22 @@ function editEmployee(index: number){
   navigateTo(`/createemployees?edit=${index}`)
 }
 
-function deleteEmployee(index:number){
-  employees.value.splice(index, 1)
+async function deleteEmployee(index: number) {
+  try {
+    const employee = employees.value[index];
+
+    if (!employee) {
+      console.error("Employee not found");
+      return;
+    }
+
+    await deleteEmployeeById(employee.id);
+    employees.value.splice(index, 1);
+  } catch (error) {
+    console.error("Failed to delete employee", error);
+  }
 }
+
 
 
 

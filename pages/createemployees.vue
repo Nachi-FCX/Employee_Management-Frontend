@@ -120,6 +120,7 @@ import { EmployeeValidationSchema } from '../Schemas/RegisterSchema'
 import type { Employee } from '~/types/employee'
 import BaseInput from '~/components/BaseInput.vue'
 import BaseButton from '~/components/BaseButton.vue'
+import { createEmployee } from '~/services/employee.service'
 
 interface EmployeeCreate {
   employee_code: string
@@ -152,25 +153,55 @@ const formState = ref<EmployeeCreate>({
 })
 
 
-function handleSubmit(){
-const employees = useState<Employee[]>('employees', () => [])
+// function handleSubmit(){
+// const employees = useState<Employee[]>('employees', () => [])
 
-employees.value.push({ ...formState.value })
+// employees.value.push({ ...formState.value })
 
-  formState.value = {
-    employee_code: '',
-    first_name: '',
-    last_name: '',
-    date_of_birth:null,
-    join_date:null,
-    department:'',
-    email: '',
-    phone: '',
-    gender: '',
-    salary: 0,
-    department_id: null,
-    role_id: null
+//   formState.value = {
+//     employee_code: '',
+//     first_name: '',
+//     last_name: '',
+//     date_of_birth:null,
+//     join_date:null,
+//     department:'',
+//     email: '',
+//     phone: '',
+//     gender: '',
+//     salary: 0,
+//     department_id: null,
+//     role_id: null
+//   }
+// } 
+
+
+async function handleSubmit(){
+  try {
+    const payload = {...formState.value}
+    await createEmployee(payload);
+
+    formState.value = {
+      employee_code: '',
+      first_name: '',
+      last_name: '',
+      date_of_birth: null,
+      join_date: null,
+      department: '',
+      email: '',
+      phone: '',
+      gender: '',
+      salary: 0,
+      department_id: null,
+      role_id: null
+    };
+
   }
-} 
+  catch(error){
+    console.error("Employee Creation Failed", error);
+
+  }
+
+}
+
 
 </script>

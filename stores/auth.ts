@@ -54,7 +54,6 @@ export const useAuthStore = defineStore(
             payload.role
           ) as 'root' | 'employee',
 
-          // 🔑 THIS IS THE KEY PART
           companyCompleted: Boolean(
             decoded?.companyCompleted ?? false
           )
@@ -64,7 +63,7 @@ export const useAuthStore = defineStore(
            ROUTING LOGIC (FINAL)
         ----------------------------------- */
         if (process.client) {
-          // Root → must complete company first
+          localStorage.setItem('token', res.token);
           if (user.value.role === 'root' && !user.value.companyCompleted) {
             await navigateTo('/onboarding/company')
           } else {

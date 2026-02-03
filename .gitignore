@@ -13,4 +13,4 @@ node_modules
 .github/workflows/nodejs.yml
 package-lock.json
 
-
+.env

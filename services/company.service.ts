@@ -1,22 +1,25 @@
-import { useRuntimeConfig } from '#imports'
-
 export interface CompanyPayload {
-  name: string
-  email: string
-  industry: string
+  company_name: string
+  company_code: string
+  contact_email: string
+  industry?: string
+}
+
+
+export interface CompanyResponse {
+  message?: string
+  company?: {
+    id: number
+    name: string
+    email: string
+    industry: string
+  }
 }
 
 export const companyService = {
-  getApiBase() {
-    return useRuntimeConfig().public?.apiBase || ''
-  },
-
-  async setupCompany(payload: CompanyPayload) {
-    const url = `${this.getApiBase()}/api/company`
-
-    return await $fetch(url, {
-      method: 'POST',
-      body: payload
-    })
+  async setupCompany(payload: CompanyPayload): Promise<CompanyResponse> {
+    const { $api } = useNuxtApp()
+    const res = await $api.post('/api/create-company', payload)
+    return res.data
   }
 }

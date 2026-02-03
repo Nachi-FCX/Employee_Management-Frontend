@@ -1,7 +1,4 @@
 <template>
-
-
-
   <UContainer class="min-h-screen w-full bg-slate-50 p-6">
     <UCard class="w-full rounded-2xl shadow-lg">
       <template #header>
@@ -11,33 +8,41 @@
       </template>
 
       <UTable :rows="employees" :columns="columns">
-        <template #cell-actions="{ row }">
-          <div class="flex gap-2">
-            <UButton size="xs" @click="editEmployee(row.index)">Edit</UButton>
-            <UButton size="xs" color="error" @click="deleteEmployee(row.index)">
-              Delete
-            </UButton>
-          </div>
-        </template>
-      </UTable>
+  <template #cell-actions="{ row }">
+    <div class="flex gap-2">
+      <UButton size="xs" @click="editEmployee(row.index)">
+        Edit
+      </UButton>
+      <UButton
+        size="xs"
+        color="error"
+        @click="deleteEmployee(row.index)"
+      >
+        Delete
+      </UButton>
+    </div>
+  </template>
+</UTable>
+
     </UCard>
   </UContainer>
 </template>
 
 <script setup lang="ts">
-interface Employee {
-  first_name: string
-  last_name: string
-  email: string
-  phone: string
-  gender: string
-  date_of_birth: Date | null
-  join_date: string
-  department: string
-  salary?: number
-}
+import { employeeService } from '~/services/employee.service'
+import type { Employee } from '~/types/employee'
 
-const employees = useState<Employee[]>('employees', () => [])
+const employees = ref<Employee[]>([])
+
+
+
+onMounted(async () => {
+  try {
+    employees.value = await employeeService.getEmployees()
+  } catch (err) {
+    console.error('Failed to load employees', err)
+  }
+})
 
 const columns = [
   {
@@ -48,20 +53,31 @@ const columns = [
   { accessorKey: 'email', header: 'Email' },
   { accessorKey: 'phone', header: 'Phone' },
   { accessorKey: 'gender', header: 'Gender' },
-  { accessorKey: 'department', header: 'Department' },
+  {
+    header: 'Department',
+    cell: ({ row }: any) => row.original.department.name
+  },
   { accessorKey: 'join_date', header: 'Join Date' },
   { accessorKey: 'salary', header: 'Salary' },
   { id: 'actions', header: 'Actions' },
 ]
 
-function editEmployee(index: number){
-  navigateTo(`/createemployees?edit=${index}`)
+function editEmployee(index: number) {
+  const employee = employees.value[index]
+  if (!employee) return
+
+  navigateTo(`/createemployees?edit=${employee.id}`)
 }
 
-function deleteEmployee(index:number){
-  employees.value.splice(index, 1)
+async function deleteEmployee(index: number) {
+  const employee = employees.value[index]
+  if (!employee) return
+
+  try {
+    await employeeService.deleteEmployee(employee.id)
+    employees.value.splice(index, 1)
+  } catch (err) {
+    console.error('Failed to delete employee', err)
+  }
 }
-
-
-
 </script>

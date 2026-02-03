@@ -12,7 +12,7 @@
         </div>
       </template>
 
-    <UForm :schema="EmployeeValidationSchema" :state="formState" @submit="handleSubmit" >
+    <UForm :schema="EmployeeValidationSchema" :state="formState" @submit.prevent="handleSubmit" >
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
 
         <BaseInput
@@ -100,7 +100,7 @@
       </div>
 
       <div class="flex justify-center mt-8">
-        <BaseButton class="create-employee">
+        <BaseButton  @click="handleSubmit">
           Create Employee
         </BaseButton>
       </div>
@@ -120,57 +120,89 @@ import { EmployeeValidationSchema } from '../Schemas/RegisterSchema'
 import type { Employee } from '~/types/employee'
 import BaseInput from '~/components/BaseInput.vue'
 import BaseButton from '~/components/BaseButton.vue'
+import { employeeService } from '~/services/employee.service'
 
-interface EmployeeCreate {
-  employee_code: string
+interface EmployeeFormState {
   first_name: string
   last_name: string
-  date_of_birth:Date | null
-  join_date:Date | null
-  department:string
   email: string
   phone: string
   gender: string
-  salary: number | undefined
-  department_id: number | null
-  role_id: number | null
+  date_of_birth:  null
+  join_date:  null
+  department: string      
+  department_id: number
+  role_id: number
+  username: string
+  password: string
+  salary: string          
 }
 
-const formState = ref<EmployeeCreate>({
-  employee_code: '',
+import type { CreateEmployeePayload } from '~/types/employee'
+
+const formState = ref<EmployeeFormState>({
   first_name: '',
   last_name: '',
-  date_of_birth: null,
-  join_date:null,
-  department:'',
   email: '',
   phone: '',
   gender: '',
-  salary: '',
-  department_id: null,
-  role_id: null
+  date_of_birth: null,
+  join_date: null,
+  department: '',
+  department_id: 0,
+  role_id: 0,
+  username: '',
+  password: '',
+  salary: ''
 })
 
 
-function handleSubmit(){
-const employees = useState<Employee[]>('employees', () => [])
+// async function handleSubmit () {
+//   try {
+//     const response = await employeeService.createEmployee({ ...formState.value})
 
-employees.value.push({ ...formState.value })
+//     console.log('Employee created:', response)
 
-  formState.value = {
-    employee_code: '',
-    first_name: '',
-    last_name: '',
-    date_of_birth:null,
-    join_date:null,
-    department:'',
-    email: '',
-    phone: '',
-    gender: '',
-    salary: 0,
-    department_id: null,
-    role_id: null
+
+//     formState.value = {
+//       employee_code: '',
+//       first_name: '',
+//       last_name: '',
+//       date_of_birth: null,
+//       join_date: null,
+//       department: '',
+//       email: '',
+//       phone: '',
+//       gender: '',
+//       salary: 0,
+//       department_id: null,
+//       role_id: null
+//     }
+
+//   } catch (error: any) {
+//     console.error('Failed to create employee', error)
+//   }
+// }
+
+
+
+async function handleSubmit() {
+  const payload: CreateEmployeePayload = {
+    first_name: formState.value.first_name,
+    last_name: formState.value.last_name || undefined,
+    email: formState.value.email,
+    department_id: Number(formState.value.department_id),
+    role_id: Number(formState.value.role_id),
+    username: formState.value.username,
+    password: formState.value.password,
+    salary: formState.value.salary
+      ? Number(formState.value.salary)
+      : undefined
   }
-} 
+
+  console.log(payload)
+  await employeeService.createEmployee(payload)
+}
+
 
 </script>

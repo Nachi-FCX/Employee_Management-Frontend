@@ -30,6 +30,14 @@ export const authService = {
   async login(payload: LoginPayload) {
     const { $api } = useNuxtApp()
     const { data } = await $api.post('/api/login', payload)
+    
+  
+
+  if (data.token) {
+      localStorage.setItem('token', data.token)
+      console.log('TOKEN STORED:', data.token)
+    }
+
     return data
   },
 
@@ -39,5 +47,6 @@ export const authService = {
     return data
   }
 }
+
 
 

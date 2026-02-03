@@ -5,6 +5,14 @@ import { navigateTo } from '#imports'
 import { authService } from '~/services/auth.service'
 
 
+interface User {
+  username: string
+  role: 'root' | 'employee'
+  companyCompleted: boolean
+  employeeId?: number | null
+  companyId?: number | null
+}
+
 export const useAuthStore = defineStore(
   'auth',
   () => {
@@ -53,10 +61,17 @@ export const useAuthStore = defineStore(
             decoded?.role ??
             payload.role
           ) as 'root' | 'employee',
-
           companyCompleted: Boolean(
             decoded?.companyCompleted ?? false
-          )
+          ),
+          employeeId:
+            decoded?.employee_id ??
+            decoded?.employeeId ??
+            null,
+          companyId:
+            decoded?.company_id ??
+            decoded?.companyId ??
+            null
         }
 
         /* ----------------------------------

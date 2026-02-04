@@ -247,7 +247,7 @@ async function goToCompanyStep() {
 
 async function submitWithCompany() {
   try {
-    // 1️⃣ Signup (this WORKS)
+    // 1️⃣ Signup
     const signupPayload = {
       full_name: fullName.value,
       username: username.value,
@@ -260,7 +260,6 @@ async function submitWithCompany() {
 
     const res = await authService.signupRoot(signupPayload)
 
-    // ✅ Signup success
     authStore.setToken(res.token)
     authStore.user = {
       username: signupPayload.username,
@@ -268,33 +267,33 @@ async function submitWithCompany() {
       companyCompleted: false
     }
 
-    // 2️⃣ Company setup (FIX PAYLOAD)
+    // 2️⃣ Company setup (MANDATORY)
     const companyPayload = {
       company_name: companyName.value,
-      company_code: companyName.value.toUpperCase().slice(0, 6), // or from input
+      company_code: companyName.value.toUpperCase().slice(0, 6),
       contact_email: companyEmail.value,
       industry: industry.value
     }
 
     console.log('Company payload:', companyPayload)
 
-    try {
-      await companyService.setupCompany(companyPayload)
-      authStore.user.companyCompleted = true
-    } catch (companyErr: any) {
-      console.warn(
-        'Company setup failed (signup still OK):',
-        companyErr.message
-      )
-    }
+    // ❗ If this fails → control goes to catch → no navigation
+    await companyService.setupCompany(companyPayload)
 
-    // 3️⃣ Always navigate
+    authStore.user.companyCompleted = true
+
+    // 3️⃣ Navigate ONLY if both succeed
     await navigateTo('/dashboard')
 
   } catch (err: any) {
-    // ❌ ONLY signup failure reaches here
-    console.error('Signup error:', err.message)
-    alert(err.message)
+    console.error('❌ Flow failed:', err)
+
+    const msg =
+      err?.response?.data?.message ||
+      err.message ||
+      'Something went wrong'
+
+    alert(msg)
   }
 }
 

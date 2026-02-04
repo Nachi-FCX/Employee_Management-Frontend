@@ -19,7 +19,7 @@ export interface CompanyResponse {
 export const companyService = {
   async setupCompany(payload: CompanyPayload): Promise<CompanyResponse> {
     const { $api } = useNuxtApp()
-    const res = await $api.post('/api/create-company', payload)
+    const res = await $api.post('/api/root/create-company', payload)
     return res.data
   }
 }

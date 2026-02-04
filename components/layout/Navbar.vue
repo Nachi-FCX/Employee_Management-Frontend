@@ -2,7 +2,7 @@
   <nav v-if="showNavbar" class="navbar">
     
     <div class="nav-left">
-      <NuxtLink to="/" class="brand">Fincorpx</NuxtLink>
+      <NuxtLink to="/landing" class="brand">Fincorpx</NuxtLink>
     </div>
 
     
@@ -23,7 +23,7 @@
       
       <button class="attendance-btn" @click="openAttendanceDialog">
         <i class="pi pi-calendar-clock"></i>
-        <span>Attendance</span>
+        <span>{{ checkedIn ? 'Checked In' : 'Checked Out' }}</span>
       </button>
 
       
@@ -45,7 +45,7 @@
           <span>Status</span>
           <ToggleSwitch
             v-model="checkedIn"
-            @change="handleToggle"
+            @update:modelValue="handleToggle"
           />
         </div>
 
@@ -127,16 +127,22 @@ const checkInTime = ref('')
 
 const today = new Date().toDateString()
 
-async function handleToggle() {
-  if (checkedIn.value) {
+async function handleToggle(newValue: boolean) {
+  console.log('🔔 Toggle changed to:', newValue)
+  
+  if (newValue) {
+    // User is checking in
     if (!employeeId.value || !companyId.value) {
       checkedIn.value = false
       console.warn('Missing employee or company id for check-in.')
+      alert('Missing employee or company information')
       return
     }
 
     try {
+      console.log('Calling check-in API with:', { employeeId: employeeId.value, companyId: companyId.value })
       const res = await checkIn(employeeId.value, companyId.value)
+      console.log('Check-in response:', res)
       checkInTime.value =
         res?.data?.check_in_time ?? new Date().toLocaleTimeString()
       showAttendanceDialog.value = false
@@ -153,8 +159,10 @@ async function handleToggle() {
         return
       }
       console.error('Check-in failed:', error)
+      alert('Check-in failed. Please try again.')
     }
   } else {
+    // User is checking out - show confirmation
     showConfirmDialog.value = true
   }
 }

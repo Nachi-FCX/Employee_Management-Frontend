@@ -11,33 +11,16 @@ export default defineNuxtPlugin(() => {
     }
   })
 
-  // Attach token
-  api.interceptors.request.use((req) => {
-    const authStore = useAuthStore()
-    if (authStore.token) {
-      req.headers.Authorization = `Bearer ${authStore.token}`
-    }
-    return req
-  })
-
-  // SAFE response interceptor (Nuxt-safe)
-  api.interceptors.response.use(
-    (res) => res,
-    (err) => {
-      const message =
-        err.response?.data?.message ||
-        err.message ||
-        'API Error'
-
-      if (err.response?.status === 401) {
-        const authStore = useAuthStore()
-        authStore.logout()
+  api.interceptors.request.use((request) => {
+    if (process.client) {
+      const token = localStorage.getItem('token')
+      if (token) {
+        request.headers = request.headers ?? {}
+        request.headers.Authorization = `Bearer ${token}`
       }
-
-      // 🔑 ALWAYS reject a real Error
-      return Promise.reject(new Error(message))
     }
-  )
+    return request
+  })
 
   return {
     provide: {

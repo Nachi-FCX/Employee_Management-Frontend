@@ -46,10 +46,35 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function setToken(jwt: string) {
-    token.value = jwt
-    if (process.client) {
-      localStorage.setItem('token', jwt)
+interface User {
+  username: string
+  role: 'root' | 'employee'
+  companyCompleted: boolean
+  employeeId?: number | null
+  companyId?: number | null
+}
+
+export const useAuthStore = defineStore(
+  'auth',
+  () => {
+    const user = ref<User | null>(null)
+    const token = ref<string | null>(null)
+
+    const loggedIn = computed(() => !!token.value)
+    const role = computed(() => user.value?.role || null)
+    const companyCompleted = computed(
+      () => user.value?.companyCompleted ?? false
+    )
+
+    /* ----------------------------------
+       Helper: Decode JWT
+    ----------------------------------- */
+    function parseJwt(token: string) {
+      try {
+        return JSON.parse(atob(token.split('.')[1]))
+      } catch {
+        return null
+      }
     }
   }
 

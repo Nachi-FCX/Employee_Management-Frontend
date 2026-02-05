@@ -2,7 +2,7 @@
   <nav v-if="showNavbar" class="navbar">
     
     <div class="nav-left">
-      <NuxtLink to="/" class="brand">Fincorpx</NuxtLink>
+      <NuxtLink to="/landing" class="brand">Fincorpx</NuxtLink>
     </div>
 
     
@@ -23,7 +23,7 @@
       
       <button class="attendance-btn" @click="openAttendanceDialog">
         <i class="pi pi-calendar-clock"></i>
-        <span>Attendance</span>
+        <span>{{ checkedIn ? 'Checked In' : 'Checked Out' }}</span>
       </button>
 
       
@@ -43,9 +43,9 @@
         
         <div class="toggle-row">
           <span>Status</span>
-          <InputSwitch
+          <ToggleSwitch
             v-model="checkedIn"
-            @change="handleToggle"
+            @update:modelValue="handleToggle"
           />
         </div>
 
@@ -88,14 +88,24 @@
 import { ref, computed } from 'vue'
 import { useRoute } from '#imports'
 import Dialog from 'primevue/dialog'
-import InputSwitch from 'primevue/inputswitch'
+import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
+import { storeToRefs } from 'pinia'
+import { useAuthStore } from '~/stores/auth'
+import { useAttendanceService } from '~/services/attendance.service'
 
 const route = useRoute()
 
 const showNavbar = computed(() => {
   return !['/login', '/signup'].includes(route.path)
 })
+
+const auth = useAuthStore()
+const { user } = storeToRefs(auth)
+const { checkIn, checkOut } = useAttendanceService()
+
+const employeeId = computed(() => user.value?.employeeId ?? null)
+const companyId = computed(() => user.value?.companyId ?? null)
 
 // Search State
 const searchQuery = ref('')
@@ -117,14 +127,42 @@ const checkInTime = ref('')
 
 const today = new Date().toDateString()
 
-function handleToggle() {
+async function handleToggle(newValue: boolean) {
+  console.log('🔔 Toggle changed to:', newValue)
   
-  if (checkedIn.value) {
-    checkInTime.value = new Date().toLocaleTimeString()
-    showAttendanceDialog.value = false
-  } 
-  
-  else {
+  if (newValue) {
+    // User is checking in
+    if (!employeeId.value || !companyId.value) {
+      checkedIn.value = false
+      console.warn('Missing employee or company id for check-in.')
+      alert('Missing employee or company information')
+      return
+    }
+
+    try {
+      console.log('Calling check-in API with:', { employeeId: employeeId.value, companyId: companyId.value })
+      const res = await checkIn(employeeId.value, companyId.value)
+      console.log('Check-in response:', res)
+      checkInTime.value =
+        res?.data?.check_in_time ?? new Date().toLocaleTimeString()
+      showAttendanceDialog.value = false
+    } catch (error) {
+      checkedIn.value = false
+      const status = (error as any)?.response?.status
+      const message = (error as any)?.response?.data
+      if (status === 409) {
+        alert(
+          typeof message === 'string'
+            ? message
+            : 'You have already checked out today.'
+        )
+        return
+      }
+      console.error('Check-in failed:', error)
+      alert('Check-in failed. Please try again.')
+    }
+  } else {
+    // User is checking out - show confirmation
     showConfirmDialog.value = true
   }
 }
@@ -134,11 +172,23 @@ function cancelCheckout() {
   showConfirmDialog.value = false
 }
 
-function confirmCheckout() {
-  checkedIn.value = false
-  checkInTime.value = ''
-  showConfirmDialog.value = false
-  showAttendanceDialog.value = false
+async function confirmCheckout() {
+  if (!employeeId.value || !companyId.value) {
+    checkedIn.value = true
+    console.warn('Missing employee or company id for check-out.')
+    return
+  }
+
+  try {
+    await checkOut(employeeId.value, companyId.value)
+    checkedIn.value = false
+    checkInTime.value = ''
+    showConfirmDialog.value = false
+    showAttendanceDialog.value = false
+  } catch (error) {
+    checkedIn.value = true
+    console.error('Check-out failed:', error)
+  }
 }
 
 function openAttendanceDialog() {

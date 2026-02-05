@@ -1,4 +1,5 @@
-import { useRuntimeConfig } from '#imports'
+import { api } from '~/plugins/axios'
+import type { Company } from '~/types/company'
 
 export interface CompanyPayload {
   name: string
@@ -7,16 +8,24 @@ export interface CompanyPayload {
 }
 
 export const companyService = {
-  getApiBase() {
-    return useRuntimeConfig().public?.apiBase || ''
+  async setupCompany(payload: CompanyPayload) {
+    const response = await api.post('/api/company', payload)
+    return response.data
   },
 
-  async setupCompany(payload: CompanyPayload) {
-    const url = `${this.getApiBase()}/api/company`
+  async getCompanies(token: string): Promise<Company[]> {
+    
+    const response = await api.get<Company[]>(
+      '/api/root/getcompanies',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
 
-    return await $fetch(url, {
-      method: 'POST',
-      body: payload
-    })
+    console.log('response:' , response.data)
+
+    return response.data
   }
 }

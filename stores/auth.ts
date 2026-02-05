@@ -43,7 +43,10 @@ export const useAuthStore = defineStore(
           throw new Error(res?.message || 'Invalid credentials')
         }
 
+        const token = useCookie('token')
         token.value = res.token
+        
+
         const decoded = parseJwt(res.token)
 
         user.value = {

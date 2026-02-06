@@ -25,7 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
   // 🔐 Safe JWT decode
   function decodeToken(jwt: string) {
     try {
-      const payload = jwt.split('.')[1]
+      const payload = jwt.split('.')[1] || "";
       return JSON.parse(atob(payload))
     } catch {
       return null

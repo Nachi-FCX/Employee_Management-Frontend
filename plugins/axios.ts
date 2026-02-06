@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuthStore } from '~/stores/auth'
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()

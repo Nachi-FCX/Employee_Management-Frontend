@@ -2,15 +2,29 @@ import { api } from '~/plugins/axios'
 import type { Company } from '~/types/company'
 
 export interface CompanyPayload {
-  name: string
-  email: string
-  industry: string
+  company_name: string
+  company_code: string
+  contact_email: string
+  industry?: string
+}
+
+
+export interface CompanyResponse {
+  message?: string
+  company?: {
+    id: number
+    name: string
+    email: string
+    industry: string
+  }
 }
 
 export const companyService = {
   async setupCompany(payload: CompanyPayload) {
-    const response = await api.post('/api/company', payload)
-    return response.data
+
+    const { $api } = useNuxtApp()
+    const res = await $api.post('/api/root/create-company', payload)
+    return res.data
   },
 
   async getCompanies(token: string): Promise<Company[]> {
@@ -27,5 +41,7 @@ export const companyService = {
     console.log('response:' , response.data)
 
     return response.data
-  }
+  },
+ 
+  
 }

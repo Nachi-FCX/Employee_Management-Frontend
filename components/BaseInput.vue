@@ -47,7 +47,7 @@
     <div v-if="error" class="error-message">{{ error }}</div>
     <div v-if="hint && !error" class="hint">{{ hint }}</div>
 
-    <div v-if="maxLength" class="char-counter">
+    <div v-if="maxLength && typeof modelValue === 'string'" class="char-counter">
       {{ modelValue?.length || 0 }}/{{ maxLength }}
     </div>
   </div>
@@ -60,7 +60,7 @@ import IftaLabel from 'primevue/iftalabel'
 import InputText from 'primevue/inputtext'
 
 interface Props {
-  modelValue: string 
+  modelValue: string | number | undefined
   label?: string
   type?: string
   id?: string

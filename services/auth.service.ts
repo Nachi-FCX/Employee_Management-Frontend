@@ -35,8 +35,16 @@ export interface SignupResponse {
 export const authService = {
   async login(payload: LoginPayload): Promise<LoginResponse> {
     const { $api } = useNuxtApp()
-    const res = await $api.post('/api/login', payload)
-    return res.data
+    const { data } = await $api.post('/api/login', payload)
+    
+  
+
+  if (data.token) {
+      localStorage.setItem('token', data.token)
+      console.log('TOKEN STORED:', data.token)
+    }
+
+    return data
   },
 
   async signupRoot(payload: RootSignupPayload): Promise<SignupResponse> {
@@ -45,3 +53,5 @@ export const authService = {
     return res.data
   }
 }
+
+

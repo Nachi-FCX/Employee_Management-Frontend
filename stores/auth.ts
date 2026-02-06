@@ -25,7 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
   // 🔐 Safe JWT decode
   function decodeToken(jwt: string) {
     try {
-      const payload = jwt.split('.')[1]
+      const payload = jwt.split('.')[1] || "";
       return JSON.parse(atob(payload))
     } catch {
       return null
@@ -46,37 +46,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-interface User {
-  username: string
-  role: 'root' | 'employee'
-  companyCompleted: boolean
-  employeeId?: number | null
-  companyId?: number | null
-}
 
-export const useAuthStore = defineStore(
-  'auth',
-  () => {
-    const user = ref<User | null>(null)
-    const token = ref<string | null>(null)
 
-    const loggedIn = computed(() => !!token.value)
-    const role = computed(() => user.value?.role || null)
-    const companyCompleted = computed(
-      () => user.value?.companyCompleted ?? false
-    )
-
-    /* ----------------------------------
-       Helper: Decode JWT
-    ----------------------------------- */
-    function parseJwt(token: string) {
-      try {
-        return JSON.parse(atob(token.split('.')[1]))
-      } catch {
-        return null
-      }
-    }
-  }
 
   function clearAuth() {
     token.value = null
@@ -99,9 +70,12 @@ export const useAuthStore = defineStore(
         throw new Error(res?.message || 'Invalid credentials')
       }
 
-      setToken(res.token)
+      // setToken(res.token)
 
       const decoded = decodeToken(res.token)
+        
+      const token = useCookie('token')
+        token.value = res.token
 
       user.value = {
         username: payload.username,
@@ -146,6 +120,6 @@ export const useAuthStore = defineStore(
     login,
     logout,
     markCompanyCompleted,
-    setToken
+    // setToken
   }
 })

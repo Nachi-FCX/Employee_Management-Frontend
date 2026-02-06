@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
 export const EmployeeValidationSchema = z.object({
+
+  
   first_name: z.string().min(2, 'First name should be at least 2 characters long'),
 
   last_name: z.string().min(2, 'Last name should be at least 2 characters long'),
@@ -15,7 +17,9 @@ export const EmployeeValidationSchema = z.object({
 
   join_date: z.date().nullable(),
 
-  department: z.string().min(1, 'Please select a department'),
+  companies : z.number().min(1,'Please select a company'),
+
+ 
 
   salary: z.string()
 })

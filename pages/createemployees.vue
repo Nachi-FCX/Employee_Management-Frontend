@@ -77,13 +77,18 @@
             />
 
         <dropdownfield
-            class="w-full"
-            name="department"
+            name="department_id"
             label="Department"
-            v-model="formState.department"
-            :items="['HR', 'Engineering', 'Finance', 'Marketing']"
-            
-            />
+            v-model="formState.department_id"
+            :items="[
+              { label: 'HR', value: 1 },
+              { label: 'Engineering', value: 2 },
+              { label: 'Finance', value: 3 },
+              { label: 'Marketing', value: 4 }
+            ]"
+            :useIftaLabel="true"
+          />
+
 
 
 
@@ -95,12 +100,23 @@
           placeholder="Enter salary"
           :useIftaLabel="true"
         />
+
+        <dropdownfield
+          name="company_id"
+          label="Company"
+          v-model="formState.company_id"
+          :items="companies.map(c => ({
+            label: c.company_name,
+            value: c.id
+          }))"
+        />
+
         
 
       </div>
 
       <div class="flex justify-center mt-8">
-        <BaseButton class="create-employee">
+        <BaseButton  @click="handleSubmit">
           Create Employee
         </BaseButton>
       </div>
@@ -120,57 +136,105 @@ import { EmployeeValidationSchema } from '../Schemas/RegisterSchema'
 import type { Employee } from '~/types/employee'
 import BaseInput from '~/components/BaseInput.vue'
 import BaseButton from '~/components/BaseButton.vue'
+import { employeeService } from '~/services/employee.service'
 
-interface EmployeeCreate {
-  employee_code: string
+
+
+interface EmployeeFormState {
+  company_id: number | null
   first_name: string
   last_name: string
-  date_of_birth:Date | null
-  join_date:Date | null
-  department:string
   email: string
   phone: string
   gender: string
-  salary: number | undefined
+  date_of_birth:  Date | null
+  join_date:  Date | null
+  department: string      
   department_id: number | null
   role_id: number | null
+  username: string
+  password: string
+  salary: string          
 }
 
-const formState = ref<EmployeeCreate>({
-  employee_code: '',
+import type { CreateEmployeePayload } from '~/types/employee'
+import { companyService } from '~/services/company.service'
+
+const formState = ref<EmployeeFormState>({
+  company_id: null,
   first_name: '',
   last_name: '',
-  date_of_birth: null,
-  join_date:null,
-  department:'',
   email: '',
   phone: '',
   gender: '',
-  salary: '',
-  department_id: null,
-  role_id: null
+  date_of_birth: null,
+  join_date: null,
+  department: '',
+  department_id: null ,
+  role_id: null ,
+  username: '',
+  password: '',
+  salary: ''
 })
 
 
-function handleSubmit(){
-const employees = useState<Employee[]>('employees', () => [])
 
-employees.value.push({ ...formState.value })
 
-  formState.value = {
-    employee_code: '',
-    first_name: '',
-    last_name: '',
-    date_of_birth:null,
-    join_date:null,
-    department:'',
-    email: '',
-    phone: '',
-    gender: '',
-    salary: 0,
-    department_id: null,
-    role_id: null
+
+interface Company {
+  id: string
+  company_name: string
+}
+
+
+
+const companies = ref<Company[]>([])
+
+const token = useCookie('token')
+onMounted(async () => {
+  try {
+    if (!token.value) {
+      console.error('Token not found in cookies')
+      return
+    }
+
+    companies.value = await companyService.getCompanies(token.value)
+    console.log(companies.value)
+    console.log("companies : ",companies.value )
+  } catch (err) {
+    console.error('Failed to fetch companies', err)
   }
-} 
+})
+
+
+
+
+
+async function handleSubmit() {
+  const payload: CreateEmployeePayload = {
+    company_id:Number(formState.value.company_id),
+    first_name: formState.value.first_name,
+    last_name: formState.value.last_name || undefined,
+    email: formState.value.email,
+    // department_id: Number(formState.value.department_id),
+    // role_id: Number(formState.value.role_id),
+    // username: formState.value.username,
+    // password: formState.value.password,
+    department_id:2,
+    role_id:1,
+
+
+    username:"suresh5678",
+    password:"Suresh@@09876",
+    salary: formState.value.salary
+      ? Number(formState.value.salary)
+      : undefined
+  }
+  
+
+  console.log('CreateEmployee payload:', payload)
+  await employeeService.createEmployee(payload)
+}
+
 
 </script>

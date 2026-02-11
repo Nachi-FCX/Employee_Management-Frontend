@@ -29,12 +29,16 @@ export const employeeService = {
     return data
   },
 
-  async getEmployees(companyId?: number): Promise<Employee[]> {
+  async getEmployees(company_id?: number): Promise<Employee[]> {
     const { $api } = useNuxtApp()
-    const { data } = await $api.get('/api/employees', {
-      params: companyId ? { company_id: companyId } : {}
+    console.log("getEmployees called with:", company_id);
+
+    const { data } = await $api.get(`/api/employees/`, {
+      params: company_id ? {company_id} : undefined
     })
+    console.log(data.employees);
     return data.employees
+    
   },
 
   async deleteEmployee(id: number) {

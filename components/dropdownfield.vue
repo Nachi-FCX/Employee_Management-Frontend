@@ -25,7 +25,7 @@ const props = defineProps<{
   modelValue: string | number | null
   name: string
   label: string
-  items: (string | number)[]
+  items: (string | number | { label: string; value: string | number})[]
 }>()
 
 const emit = defineEmits<{
@@ -38,6 +38,9 @@ const model = computed({
 })
 
 const normalizedOptions = computed(() =>
-  props.items.map(i => ({ label: String(i), value: i }))
+  props.items.map(i =>
+    typeof i === 'object' ? i : { label: String(i), value: i }
+  )
 )
+
 </script>

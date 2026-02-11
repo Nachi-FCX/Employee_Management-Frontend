@@ -3,6 +3,8 @@
 
 export default defineNuxtConfig({
 ssr: true,
+pages:true,
+
 modules: ['@pinia/nuxt','@nuxt/ui'],
     // modules: ['],
 css: [

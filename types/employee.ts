@@ -1,15 +1,32 @@
 export interface Employee {
-  employee_code?: string
+  id: number
+  employee_code: string
   first_name: string
   last_name: string
   email: string
   phone: string
   gender: string
-  date_of_birth: Date | null
-  join_date: Date | null
-  salary: string
-  department: string
-  role_id?: number | null
+  join_date: string
+  date_of_birth: string | null
+  salary: number | undefined
+  department: {
+    department_id: number
+    name: string
+  }
+  role: {
+    role_id: number
+    name: string
+  }
+}
 
-  role_name?: string
+export interface CreateEmployeePayload {
+  company_id?: number     
+  first_name: string
+  last_name?: string
+  email: string
+  department_id: number
+  role_id: number
+  username: string
+  password: string
+  salary?: number
 }

@@ -4,7 +4,6 @@ import { ref, computed } from 'vue'
 import { navigateTo } from '#imports'
 import { authService } from '~/services/auth.service'
 
-
 interface User {
   username: string
   role: 'root' | 'employee'
@@ -16,18 +15,24 @@ interface User {
 export const useAuthStore = defineStore(
   'auth',
   () => {
+    /* -------------------------------
+       STATE
+    -------------------------------- */
     const user = ref<User | null>(null)
     const token = ref<string | null>(null)
 
+    /* -------------------------------
+       GETTERS
+    -------------------------------- */
     const loggedIn = computed(() => !!token.value)
     const role = computed(() => user.value?.role || null)
     const companyCompleted = computed(
       () => user.value?.companyCompleted ?? false
     )
 
-    /* ----------------------------------
-       Helper: Decode JWT
-    ----------------------------------- */
+    /* -------------------------------
+       HELPER: Decode JWT
+    -------------------------------- */
     function parseJwt(token: string) {
       try {
         return JSON.parse(atob(token.split('.')[1]))
@@ -36,9 +41,16 @@ export const useAuthStore = defineStore(
       }
     }
 
-    /* ----------------------------------
+    /* -------------------------------
+       HELPER: Get Token (for Axios)
+    -------------------------------- */
+    function getToken() {
+      return token.value
+    }
+
+    /* -------------------------------
        LOGIN (ROOT / EMPLOYEE)
-    ----------------------------------- */
+    -------------------------------- */
     async function login(payload: {
       username: string
       password: string
@@ -74,34 +86,27 @@ export const useAuthStore = defineStore(
             null
         }
 
-        /* ----------------------------------
-           ROUTING LOGIC (FINAL)
-        ----------------------------------- */
         if (process.client) {
-          localStorage.setItem('token', res.token);
-          if (user.value.role === 'root' && !user.value.companyCompleted) {
-            await navigateTo('/onboarding/company')
-          } else {
-            await navigateTo('/dashboard')
-          }
+          localStorage.setItem('token', res.token)
+          await navigateTo('/dashboard')
         }
       } catch (err: any) {
         throw new Error(err?.message || 'Login failed')
       }
     }
 
-    /* ----------------------------------
-       CALLED AFTER COMPANY SETUP
-    ----------------------------------- */
+    /* -------------------------------
+       AFTER COMPANY SETUP
+    -------------------------------- */
     function markCompanyCompleted() {
       if (user.value) {
         user.value.companyCompleted = true
       }
     }
 
-    /* ----------------------------------
-       SIGNUP (ROOT ACCOUNT ONLY)
-    ----------------------------------- */
+    /* -------------------------------
+       SIGNUP (ROOT ONLY)
+    -------------------------------- */
     async function signup(payload: SignupPayload) {
       try {
         const res = await authService.signup(payload)
@@ -110,7 +115,6 @@ export const useAuthStore = defineStore(
           throw new Error(res?.message || 'Signup failed')
         }
 
-        // After signup → go to login
         if (process.client) {
           await navigateTo('/login')
         }
@@ -121,15 +125,23 @@ export const useAuthStore = defineStore(
       }
     }
 
-    /* ----------------------------------
+    /* -------------------------------
        LOGOUT
-    ----------------------------------- */
+    -------------------------------- */
     function logout() {
       user.value = null
       token.value = null
+
+      if (process.client) {
+        localStorage.removeItem('token')
+      }
+
       navigateTo('/login')
     }
 
+    /* -------------------------------
+       EXPORTS
+    -------------------------------- */
     return {
       user,
       token,
@@ -139,7 +151,8 @@ export const useAuthStore = defineStore(
       login,
       signup,
       logout,
-      markCompanyCompleted
+      markCompanyCompleted,
+      getToken
     }
   },
   { persist: true }

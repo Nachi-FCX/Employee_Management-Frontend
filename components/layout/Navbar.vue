@@ -27,8 +27,37 @@
       </button>
 
       
-      <div class="avatar">U</div>
+      <div class="avatar-container" ref="avatarContainer">
+        <div class="avatar" @click="toggleProfileDropdown">U</div>
+        <div v-if="showProfileDropdown" class="profile-dropdown">
+          <button class="dropdown-item" @click="goToProfile">
+            <i class="pi pi-user"></i>
+            <span>Profile</span>
+          </button>
+          <button class="dropdown-item" @click="goToCompany">
+            <i class="pi pi-building"></i>
+            <span>Company</span>
+          </button>
+         
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item logout" @click="handleLogout">
+            <i class="pi pi-sign-out"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
     </div>
+
+    <!-- Profile Side Panel -->
+    <ProfileSidePanel
+      :isOpen="showProfilePanel"
+      @close="showProfilePanel = false"
+    />
+
+    <CompanySidePanel
+      :isOpen="showCompanyPanel"
+      @close="showCompanyPanel = false"
+    />
 
     
     <Dialog
@@ -86,10 +115,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute } from '#imports'
+import { useRoute, navigateTo } from '#imports'
 import Dialog from 'primevue/dialog'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
+import ProfileSidePanel from '~/components/ProfileSidePanel.vue'
+import CompanySidePanel from '~/components/CompanySidePanel.vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '~/stores/auth'
 import { useAttendanceService } from '~/services/attendance.service'
@@ -106,6 +137,56 @@ const { checkIn, checkOut } = useAttendanceService()
 
 const employeeId = computed(() => user.value?.employeeId ?? null)
 const companyId = computed(() => user.value?.companyId ?? null)
+
+// Profile Dropdown State
+const showProfileDropdown = ref(false)
+const showProfilePanel = ref(false)
+const showCompanyPanel = ref(false)
+const avatarContainer = ref<HTMLElement>()
+
+function toggleProfileDropdown() {
+  showProfileDropdown.value = !showProfileDropdown.value
+}
+
+function closeProfileDropdown() {
+  showProfileDropdown.value = false
+}
+
+function goToProfile() {
+  console.log('Opening profile panel')
+  showProfilePanel.value = true
+  showCompanyPanel.value = false
+  closeProfileDropdown()
+}
+
+function goToCompany() {
+  console.log('Opening company panel')
+  showCompanyPanel.value = true
+  showProfilePanel.value = false
+  closeProfileDropdown()
+}
+
+function goToPasswordChange() {
+  console.log('Navigate to password change page')
+  navigateTo('/change-password') // Update with your actual password change route
+  closeProfileDropdown()
+}
+
+function handleLogout() {
+  console.log('Logging out...')
+  auth.logout()
+  navigateTo('/login')
+  closeProfileDropdown()
+}
+
+// Close dropdown when clicking outside
+if (process.client) {
+  document.addEventListener('click', (event) => {
+    if (avatarContainer.value && !avatarContainer.value.contains(event.target as Node)) {
+      closeProfileDropdown()
+    }
+  })
+}
 
 // Search State
 const searchQuery = ref('')
@@ -316,5 +397,69 @@ font-size: 13px;
   align-items: center;
   justify-content: center;
   font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.avatar:hover {
+  background-color: #1d4ed8;
+}
+
+.avatar-container {
+  position: relative;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  transition: background-color 0.2s ease;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+
+.dropdown-item i {
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.dropdown-item.logout {
+  color: #dc2626;
+}
+
+.dropdown-item.logout i {
+  color: #dc2626;
+}
+
+.dropdown-item.logout:hover {
+  background-color: #fee2e2;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 4px 0;
 }
 </style>

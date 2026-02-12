@@ -2,7 +2,6 @@
   <div class="dashboard-page">
     <div class="header">
       <h1>Dashboard</h1>
-      <button class="signout" @click="logout">Sign out</button>
     </div>
 
     <section class="card">
@@ -18,23 +17,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+
+
+import { computed } from 'vue'
 import { useAuthStore } from '~/stores/auth'
-import { navigateTo } from '#imports'
 
 const auth = useAuthStore()
 const user = computed(() => auth.user)
 
-onMounted(() => {
-  // redirect to login if not authenticated
-  if (!auth.token) {
-    navigateTo('/login')
-  }
-})
-
 function logout() {
   auth.logout()
-  navigateTo('/login')
 }
 </script>
 
@@ -78,5 +70,7 @@ function logout() {
   margin: 0 0 8px 0;
 }
 
-.welcome p { color: #475569 }
+.welcome p {
+  color: #475569;
+}
 </style>

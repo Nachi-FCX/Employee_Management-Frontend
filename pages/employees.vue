@@ -10,7 +10,7 @@
         </h1>
       </template>
 
-      <UTable :rows="employees" :columns="columns">
+      <UTable :data="employees" :columns="columns">
         <template #cell-actions="{ row }">
           <div class="flex gap-2">
             <UButton size="xs" @click="editEmployee(row.index)">Edit</UButton>

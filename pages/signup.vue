@@ -2,16 +2,15 @@
   <div class="signup-page">
     <div class="signup-container">
 
-      <!-- Left Panel (UNCHANGED UI) -->
+      <!-- Left Panel -->
       <div class="left-panel">
-        
         <BrandHeader subtitle="Employee Management Dashboard" />
+
         <div class="progress-section">
           <div class="step" :class="{ active: currentStep === 1 }">
             <div class="step-number">1</div>
             <div class="step-content">
               <div class="step-title">Root Details</div>
-              <div class="step-status">Current Step</div>
             </div>
           </div>
 
@@ -19,7 +18,6 @@
             <div class="step-number">2</div>
             <div class="step-content">
               <div class="step-title">Company Setup</div>
-              <div class="step-status">Next Step</div>
             </div>
           </div>
 
@@ -27,7 +25,6 @@
             <div class="step-number">3</div>
             <div class="step-content">
               <div class="step-title">Complete</div>
-              <div class="step-status">Final Step</div>
             </div>
           </div>
         </div>
@@ -36,12 +33,15 @@
       <!-- Right Panel -->
       <div class="right-panel">
 
-        <!-- ================= STEP 1 : ROOT FORM (UNCHANGED UI) ================= -->
-        <form v-if="currentStep === 1" @submit.prevent="goToCompanyStep" class="signup-form">
-          <div class="form-header">
-            <h2>Root Registration</h2>
-          </div>
+        <!-- STEP 1 -->
+        <form
+          v-if="currentStep === 1"
+          @submit.prevent="goToCompanyStep"
+          class="signup-form"
+        >
+   
 
+          
           <div class="form-grid">
             <div class="form-group">
               <BaseInput
@@ -104,7 +104,8 @@
                 useIftaLabel
               />
             </div>
-          </div>
+            </div>
+
           <label class="terms-inline">
   <input
     type="checkbox"
@@ -118,7 +119,7 @@
               <i class="icon-warning"></i> You must accept the terms to continue
             </div>
 
-          <BaseButton type="submit" class="submit-btn">
+  <BaseButton type="submit" class="submit-btn">
             Continue
           </BaseButton>
            <!-- Login Link -->
@@ -127,75 +128,67 @@
             <NuxtLink to="/login" class="login-link">Sign in here</NuxtLink>
           </div>
         </form>
+        <!-- STEP 2 -->
+<form
+  v-if="currentStep === 2"
+  @submit.prevent="submitWithCompany"
+  class="signup-form"
+>
+  <h2>Company Setup</h2>
 
-        <!STEP 2 : COMPANY FORM (SAME CLASSES)>
-        <form
-          v-if="currentStep === 2"
-          @submit.prevent="submitWithCompany"
-          class="signup-form"
-        >
-          <div class="form-header">
-            <h2>Company Setup</h2>
-            <p class="form-subtitle">
-              You can complete this now or skip and do it later
-            </p>
-          </div>
+  <div class="form-grid">
+    <div class="form-group">
+      <BaseInput
+        label="Company Name"
+        v-model="companyName"
+        v-bind="companyNameProps"
+        :error="companyErrors.companyName"
+        useIftaLabel
+      />
+    </div>
 
-          <div class="form-grid">
-            <div class="form-group">
-              <BaseInput
-                label="Company Name"
-                v-model="companyName"
-                v-bind="companyNameProps"
-                :error="companyErrors.companyName"
-                useIftaLabel
-              />
-            </div>
+    <div class="form-group">
+      <BaseInput
+        label="Company Email"
+        v-model="companyEmail"
+        v-bind="companyEmailProps"
+        :error="companyErrors.companyEmail"
+        useIftaLabel
+      />
+    </div>
 
-            <div class="form-group">
-              <BaseInput
-                label="Company Email"
-                v-model="companyEmail"
-                v-bind="companyEmailProps"
-                :error="companyErrors.companyEmail"
-                useIftaLabel
-            />
-            </div>
+    <div class="form-group">
+      <BaseInput
+        label="Industry"
+        v-model="industry"
+        v-bind="industryProps"
+        :error="companyErrors.industry"
+        useIftaLabel
+      />
+    </div>
+  </div>
 
-            <div class="form-group">
-              <BaseInput
-                label="Industry"
-                v-model="industry"
-                v-bind="industryProps"
-                :error="companyErrors.industry"
-                useIftaLabel
-              />
-            </div>
-          </div>
+  <!-- Buttons -->
+  <BaseButton type="submit" class="submit-btn">
+    Complete Signup
+  </BaseButton>
 
-          <BaseButton type="submit" class="submit-btn">
-            Complete Signup
-          </BaseButton>
+  <!-- ✅ SKIP BUTTON -->
+  <div class="login-prompt">
+    <a href="#" class="login-link" @click.prevent="skipCompany">
+      Skip for now
+    </a>
+  </div>
+</form>
 
 
-           <!-- Skip company form link -->
-          <div class="login-prompt">
-            
-            <NuxtLink to="/signup" class="login-link">Skip for now</NuxtLink>
-          </div>
-        </form>
-
-        <!-- ================= STEP 3 : COMPLETE ================= -->
+        <!-- STEP 3 -->
         <div v-if="currentStep === 3" class="signup-form">
-          <div class="form-header">
-            <h2>Signup Completed</h2>
-            <p class="form-subtitle">
-              You can complete company setup later from your dashboard
-            </p>
-          </div>
+          <h2>Signup Completed</h2>
+          <p>You are now logged in</p>
 
-          <NuxtLink to="/login" class="submit-btn">
-            Go to Login
+          <NuxtLink to="/dashboard" class="submit-btn">
+            Go to Dashboard
           </NuxtLink>
         </div>
 
@@ -206,19 +199,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useAuthStore } from '~/stores/auth'
+import { authService } from '~/services/auth.service'
+import { companyService } from '~/services/company.service'
+import { navigateTo } from '#imports'
+
+const authStore = useAuthStore()
 const currentStep = ref<1 | 2 | 3>(1)
 const rootPayload = ref<any>(null)
-
-const {
-  companyName,
-  companyNameProps,
-  companyEmail,
-  companyEmailProps,
-  industry,
-  industryProps,
-  errors: companyErrors,
-  validateCompanyForm
-} = useCompanyForm()
 
 const {
   fullName,
@@ -238,6 +226,16 @@ const {
   validateRootForm
 } = useSignupForm()
 
+const {
+  companyName,
+  companyNameProps,
+  companyEmail,
+  companyEmailProps,
+  industry,
+  industryProps,
+  errors: companyErrors,
+  validateCompanyForm
+} = useCompanyForm()
 
 async function goToCompanyStep() {
   const payload = await validateRootForm()
@@ -248,17 +246,85 @@ async function goToCompanyStep() {
 }
 
 async function submitWithCompany() {
-  const companyPayload = await validateCompanyForm()
-  if (!companyPayload) return
+  try {
+    // 1️⃣ Signup
+    const signupPayload = {
+      full_name: fullName.value,
+      username: username.value,
+      email: email.value,
+      password: password.value,
+      phone: phone.value || null
+    }
 
-  await authService.signupRoot(rootPayload.value)
-  await companyService.setupCompany(companyPayload)
+    console.log('Signup payload:', signupPayload)
 
-  currentStep.value = 3
+    const res = await authService.signupRoot(signupPayload)
+
+    authStore.setToken(res.token)
+    authStore.user = {
+      username: signupPayload.username,
+      role: 'ROOT',
+      companyCompleted: false
+    }
+
+    // 2️⃣ Company setup (MANDATORY)
+    const companyPayload = {
+      company_name: companyName.value,
+      company_code: companyName.value.toUpperCase().slice(0, 6),
+      contact_email: companyEmail.value,
+      industry: industry.value
+    }
+
+    console.log('Company payload:', companyPayload)
+
+    // ❗ If this fails → control goes to catch → no navigation
+    await companyService.setupCompany(companyPayload)
+
+    authStore.user.companyCompleted = true
+
+    // 3️⃣ Navigate ONLY if both succeed
+    await navigateTo('/dashboard')
+
+  } catch (err: any) {
+    console.error('❌ Flow failed:', err)
+
+    const msg =
+      err?.response?.data?.message ||
+      err.message ||
+      'Something went wrong'
+
+    alert(msg)
+  }
 }
+
+
 
 async function skipCompany() {
-  await authService.signupRoot(rootPayload.value)
-  currentStep.value = 3
+  try {
+    const signupPayload = {
+      full_name: fullName.value,
+      username: username.value,
+      email: email.value,
+      password: password.value,
+      phone: phone.value || null
+    }
+
+    const res = await authService.signupRoot(signupPayload)
+    if (!res?.token) throw new Error('Signup failed')
+
+    authStore.setToken(res.token)
+    authStore.user = {
+      username: signupPayload.username,
+      role: 'root',
+      companyCompleted: false
+    }
+
+    await navigateTo('/dashboard')
+  } catch (err: any) {
+    console.error('Signup failed:', err.message)
+    alert(err.message)
+  }
 }
+
+
 </script>

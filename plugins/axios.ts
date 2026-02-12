@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuthStore } from '~/stores/auth'
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
@@ -6,9 +7,8 @@ export default defineNuxtPlugin(() => {
   const api = axios.create({
     baseURL: config.public.baseUrl,
     headers: {
-      'Content-Type': 'application/json',
-      
-    },
+      'Content-Type': 'application/json'
+    }
   })
 
   api.interceptors.request.use((request) => {
@@ -24,7 +24,7 @@ export default defineNuxtPlugin(() => {
 
   return {
     provide: {
-      api,
-    },
+      api
+    }
   }
 })

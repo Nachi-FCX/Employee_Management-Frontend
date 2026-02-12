@@ -33,29 +33,29 @@ export const useAuthStore = defineStore(
     /* -------------------------------
        HELPER: Decode JWT
     -------------------------------- */
-    function parseJwt(token: string) {
-      try {
-        return JSON.parse(atob(token.split('.')[1]))
-      } catch {
-        return null
-      }
-    }
+function parseJwt(token: string) {
+  try {
+    return JSON.parse(atob(token.split('.')[1]))
+  } catch {
+    return null
+  }
+}
 
-    /* -------------------------------
-       HELPER: Get Token (for Axios)
-    -------------------------------- */
-    function getToken() {
-      return token.value
-    }
+/* -------------------------------
+   HELPER: Get Token (for Axios)
+-------------------------------- */
+function getToken() {
+  return token.value
+}
 
-    /* -------------------------------
-       LOGIN (ROOT / EMPLOYEE)
-    -------------------------------- */
-    async function login(payload: {
-      username: string
-      password: string
-      role: 'root' | 'employee'
-    }) {
+/* -------------------------------
+   LOGIN (ROOT / EMPLOYEE)
+-------------------------------- */
+async function login(payload: {
+  username: string
+  password: string
+  role: 'root' | 'employee'
+}) {
       try {
         const res = await authService.login(payload)
 
@@ -111,9 +111,7 @@ export const useAuthStore = defineStore(
       try {
         const res = await authService.signup(payload)
 
-        if (!res?.user_id) {
-          throw new Error(res?.message || 'Signup failed')
-        }
+        const decoded = parseJwt(res.token)
 
         if (process.client) {
           await navigateTo('/login')
@@ -142,18 +140,19 @@ export const useAuthStore = defineStore(
     /* -------------------------------
        EXPORTS
     -------------------------------- */
-    return {
-      user,
-      token,
-      loggedIn,
-      role,
-      companyCompleted,
-      login,
-      signup,
-      logout,
-      markCompanyCompleted,
-      getToken
-    }
-  },
-  { persist: true }
-)
+      return {
+        user,
+        token,
+        loggedIn,
+        role,
+        companyCompleted,
+        login,
+        signup,
+        logout,
+        markCompanyCompleted,
+        getToken
+      }
+    },
+    { persist: true }
+  )
+

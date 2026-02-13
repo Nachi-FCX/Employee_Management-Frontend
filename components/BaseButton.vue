@@ -5,6 +5,7 @@
     :class="['base-button', variant, { 'is-loading': loading }]"
   >
     <span v-if="loading" class="spinner"></span>
+    <i v-else-if="icon" :class="['pi', icon]" aria-hidden="true"></i>
     <slot v-else />
   </button>
   
@@ -23,6 +24,10 @@ defineProps({
   variant: {
     type: String,
     default: 'primary' // Useful for CSS styling (e.g., 'danger', 'outline')
+  },
+  icon: {
+    type: String,
+    default: ''
   }
 });
 </script>

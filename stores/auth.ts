@@ -25,7 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
   // 🔐 Safe JWT decode
   function decodeToken(jwt: string) {
     try {
-      const payload = jwt.split('.')[1]
+      const payload = jwt.split('.')[1] || "";
       return JSON.parse(atob(payload))
     } catch {
       return null
@@ -74,9 +74,12 @@ export const useAuthStore = defineStore('auth', () => {
         throw new Error(res?.message || 'Invalid credentials')
       }
 
-      setToken(res.token)
+      // setToken(res.token)
 
       const decoded = decodeToken(res.token)
+        
+      const token = useCookie('token')
+        token.value = res.token
 
       user.value = {
         username: payload.username,
@@ -121,6 +124,6 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     markCompanyCompleted,
-    setToken
+    // setToken
   }
 })

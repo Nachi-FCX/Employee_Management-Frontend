@@ -121,7 +121,6 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
 import ProfileSidePanel from '~/components/ProfileSidePanel.vue'
 import CompanySidePanel from '~/components/CompanySidePanel.vue'
-import { storeToRefs } from 'pinia'
 import { useAuthStore } from '~/stores/auth'
 import { useAttendanceService } from '~/services/attendance.service'
 
@@ -132,13 +131,38 @@ const showNavbar = computed(() => {
 })
 
 const auth = useAuthStore()
-const { user } = storeToRefs(auth)
 const { checkIn, checkOut } = useAttendanceService()
 
-const employeeId = computed(() => user.value?.employeeId ?? null)
-const companyId = computed(() => user.value?.companyId ?? null)
+/* ================================
+   🔐 JWT DECODE 
+================================ */
 
-// Profile Dropdown State
+function decodeToken(jwt: string) {
+  try {
+    const payload = jwt.split('.')[1]
+    return JSON.parse(atob(payload))
+  } catch {
+    return null
+  }
+}
+
+const decodedToken = ref<any>(null)
+
+if (process.client) {
+  const token = localStorage.getItem('token')
+  if (token) {
+    decodedToken.value = decodeToken(token)
+    console.log('Decoded JWT:', decodedToken.value)
+  }
+}
+
+const employeeId = computed(() => decodedToken.value?.employee_id ?? null)
+const companyId = computed(() => decodedToken.value?.company_id ?? null)
+
+/* ================================
+   PROFILE DROPDOWN
+================================ */
+
 const showProfileDropdown = ref(false)
 const showProfilePanel = ref(false)
 const showCompanyPanel = ref(false)
@@ -153,33 +177,23 @@ function closeProfileDropdown() {
 }
 
 function goToProfile() {
-  console.log('Opening profile panel')
   showProfilePanel.value = true
   showCompanyPanel.value = false
   closeProfileDropdown()
 }
 
 function goToCompany() {
-  console.log('Opening company panel')
   showCompanyPanel.value = true
   showProfilePanel.value = false
   closeProfileDropdown()
 }
 
-function goToPasswordChange() {
-  console.log('Navigate to password change page')
-  navigateTo('/change-password') // Update with your actual password change route
-  closeProfileDropdown()
-}
-
 function handleLogout() {
-  console.log('Logging out...')
   auth.logout()
   navigateTo('/login')
   closeProfileDropdown()
 }
 
-// Close dropdown when clicking outside
 if (process.client) {
   document.addEventListener('click', (event) => {
     if (avatarContainer.value && !avatarContainer.value.contains(event.target as Node)) {
@@ -188,18 +202,22 @@ if (process.client) {
   })
 }
 
-// Search State
+/* ================================
+   SEARCH
+================================ */
+
 const searchQuery = ref('')
 
 function handleSearch() {
-  console.log('🔍 Search triggered!')
-  console.log('Search query:', searchQuery.value)
   if (searchQuery.value.trim()) {
     console.log('Searching for:', searchQuery.value)
   }
 }
 
-// Attendance State
+/* ================================
+   ATTENDANCE LOGIC
+================================ */
+
 const showAttendanceDialog = ref(false)
 const showConfirmDialog = ref(false)
 
@@ -210,40 +228,37 @@ const today = new Date().toDateString()
 
 async function handleToggle(newValue: boolean) {
   console.log('🔔 Toggle changed to:', newValue)
-  
-  if (newValue) {
-    // User is checking in
-    if (!employeeId.value || !companyId.value) {
-      checkedIn.value = false
-      console.warn('Missing employee or company id for check-in.')
-      alert('Missing employee or company information')
-      return
-    }
 
+  if (!employeeId.value || !companyId.value) {
+    checkedIn.value = false
+    alert('Missing employee or company information')
+    return
+  }
+
+  if (newValue) {
+    // ✅ CHECK IN
     try {
-      console.log('Calling check-in API with:', { employeeId: employeeId.value, companyId: companyId.value })
       const res = await checkIn(employeeId.value, companyId.value)
-      console.log('Check-in response:', res)
       checkInTime.value =
         res?.data?.check_in_time ?? new Date().toLocaleTimeString()
+
       showAttendanceDialog.value = false
-    } catch (error) {
+    } catch (error: any) {
       checkedIn.value = false
-      const status = (error as any)?.response?.status
-      const message = (error as any)?.response?.data
-      if (status === 409) {
+
+      if (error?.response?.status === 409) {
         alert(
-          typeof message === 'string'
-            ? message
+          typeof error?.response?.data === 'string'
+            ? error.response.data
             : 'You have already checked out today.'
         )
         return
       }
-      console.error('Check-in failed:', error)
+
       alert('Check-in failed. Please try again.')
     }
   } else {
-    // User is checking out - show confirmation
+    // ✅ CHECK OUT (confirm dialog)
     showConfirmDialog.value = true
   }
 }
@@ -256,26 +271,25 @@ function cancelCheckout() {
 async function confirmCheckout() {
   if (!employeeId.value || !companyId.value) {
     checkedIn.value = true
-    console.warn('Missing employee or company id for check-out.')
+    alert('Missing employee or company information')
     return
   }
 
   try {
     await checkOut(employeeId.value, companyId.value)
+
     checkedIn.value = false
     checkInTime.value = ''
     showConfirmDialog.value = false
     showAttendanceDialog.value = false
   } catch (error) {
     checkedIn.value = true
-    console.error('Check-out failed:', error)
+    alert('Check-out failed. Please try again.')
   }
 }
 
 function openAttendanceDialog() {
-  console.log('🔔 Attendance button clicked!')
   showAttendanceDialog.value = true
-  console.log('Dialog state:', showAttendanceDialog.value)
 }
 </script>
 

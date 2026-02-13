@@ -4,155 +4,123 @@ import { ref, computed } from 'vue'
 import { navigateTo } from '#imports'
 import { authService } from '~/services/auth.service'
 
+type Role = 'root' | 'employee'
+
 interface User {
   username: string
-  role: 'root' | 'employee'
+  role: Role
   companyCompleted: boolean
-  employeeId?: number | null
-  companyId?: number | null
 }
 
-export const useAuthStore = defineStore(
-  'auth',
-  () => {
-    /* -------------------------------
-       STATE
-    -------------------------------- */
-    const user = ref<User | null>(null)
-    const token = ref<string | null>(null)
-
-    /* -------------------------------
-       GETTERS
-    -------------------------------- */
-    const loggedIn = computed(() => !!token.value)
-    const role = computed(() => user.value?.role || null)
-    const companyCompleted = computed(
-      () => user.value?.companyCompleted ?? false
-    )
-
-    /* -------------------------------
-       HELPER: Decode JWT
-    -------------------------------- */
-function parseJwt(token: string) {
-  try {
-    return JSON.parse(atob(token.split('.')[1]))
-  } catch {
-    return null
-  }
-}
-
-/* -------------------------------
-   HELPER: Get Token (for Axios)
--------------------------------- */
-function getToken() {
-  return token.value
-}
-
-/* -------------------------------
-   LOGIN (ROOT / EMPLOYEE)
--------------------------------- */
-async function login(payload: {
-  username: string
-  password: string
-  role: 'root' | 'employee'
-}) {
-      try {
-        const res = await authService.login(payload)
-
-        if (!res?.token) {
-          throw new Error(res?.message || 'Invalid credentials')
-        }
-
-        token.value = res.token
-        const decoded = parseJwt(res.token)
-
-        user.value = {
-          username: payload.username,
-          role: String(
-            decoded?.roleName ??
-            decoded?.role ??
-            payload.role
-          ) as 'root' | 'employee',
-          companyCompleted: Boolean(
-            decoded?.companyCompleted ?? false
-          ),
-          employeeId:
-            decoded?.employee_id ??
-            decoded?.employeeId ??
-            null,
-          companyId:
-            decoded?.company_id ??
-            decoded?.companyId ??
-            null
-        }
-
-        if (process.client) {
-          localStorage.setItem('token', res.token)
-          await navigateTo('/dashboard')
-        }
-      } catch (err: any) {
-        throw new Error(err?.message || 'Login failed')
-      }
-    }
-
-    /* -------------------------------
-       AFTER COMPANY SETUP
-    -------------------------------- */
-    function markCompanyCompleted() {
-      if (user.value) {
-        user.value.companyCompleted = true
-      }
-    }
-
-    /* -------------------------------
-       SIGNUP (ROOT ONLY)
-    -------------------------------- */
-    async function signup(payload: SignupPayload) {
-      try {
-        const res = await authService.signup(payload)
-
-        const decoded = parseJwt(res.token)
-
-        if (process.client) {
-          await navigateTo('/login')
-        }
-
-        return res
-      } catch (err: any) {
-        throw new Error(err?.message || 'Signup failed')
-      }
-    }
-
-    /* -------------------------------
-       LOGOUT
-    -------------------------------- */
-    function logout() {
-      user.value = null
-      token.value = null
-
-      if (process.client) {
-        localStorage.removeItem('token')
-      }
-
-      navigateTo('/login')
-    }
-
-    /* -------------------------------
-       EXPORTS
-    -------------------------------- */
-      return {
-        user,
-        token,
-        loggedIn,
-        role,
-        companyCompleted,
-        login,
-        signup,
-        logout,
-        markCompanyCompleted,
-        getToken
-      }
-    },
-    { persist: true }
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref<User | null>(null)
+  const token = ref<string | null>(
+    process.client ? localStorage.getItem('token') : null
   )
 
+  const loggedIn = computed(() => Boolean(token.value))
+  const role = computed(() => user.value?.role ?? null)
+  const companyCompleted = computed(() => user.value?.companyCompleted ?? false)
+
+  // 🔐 Safe JWT decode
+  function decodeToken(jwt: string) {
+    try {
+      const payload = jwt.split('.')[1]
+      return JSON.parse(atob(payload))
+    } catch {
+      return null
+    }
+  }
+
+  // ✅ BACKEND type → FRONTEND role
+  function mapRoleFromType(type?: string): Role {
+    if (!type) return 'employee'
+
+    switch (type.toUpperCase()) {
+      case 'ROOT':
+        return 'root'
+      case 'EMPLOYEE':
+        return 'employee'
+      default:
+        return 'employee'
+    }
+  }
+
+  function setToken(jwt: string) {
+    token.value = jwt
+    if (process.client) {
+      localStorage.setItem('token', jwt)
+    }
+  }
+
+  function clearAuth() {
+    token.value = null
+    user.value = null
+    if (process.client) {
+      localStorage.removeItem('token')
+    }
+  }
+
+  // ✅ SAFE LOGIN
+  async function login(payload: {
+    username: string
+    password: string
+    role: Role
+  }) {
+    try {
+      const res = await authService.login(payload)
+
+      if (!res?.token) {
+        throw new Error(res?.message || 'Invalid credentials')
+      }
+
+      setToken(res.token)
+
+      const decoded = decodeToken(res.token)
+
+      user.value = {
+        username: payload.username,
+        role: mapRoleFromType(decoded?.type), // ✅ FIXED
+        companyCompleted: Boolean(decoded?.companyCompleted)
+      }
+
+      // 🚨 Navigation ONLY on client
+      if (!process.client) return
+
+      if (user.value.role === 'root' && !user.value.companyCompleted) {
+        await navigateTo('/onboarding/company')
+      } else {
+        await navigateTo('/dashboard')
+      }
+
+    } catch (err: any) {
+      console.error('Login failed:', err.message)
+      throw new Error(err.message || 'Login failed')
+    }
+  }
+
+  function markCompanyCompleted() {
+    if (user.value) {
+      user.value.companyCompleted = true
+    }
+  }
+
+  function logout() {
+    clearAuth()
+    if (process.client) {
+      navigateTo('/login')
+    }
+  }
+
+  return {
+    user,
+    token,
+    loggedIn,
+    role,
+    companyCompleted,
+    login,
+    logout,
+    markCompanyCompleted,
+    setToken
+  }
+})

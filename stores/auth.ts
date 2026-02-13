@@ -46,8 +46,12 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-
-
+  function setToken(jwt: string) {
+    token.value = jwt
+    if (process.client) {
+      localStorage.setItem('token', jwt)
+    }
+  }
 
   function clearAuth() {
     token.value = null

@@ -27,8 +27,37 @@
       </button>
 
       
-      <div class="avatar">U</div>
+      <div class="avatar-container" ref="avatarContainer">
+        <div class="avatar" @click="toggleProfileDropdown">U</div>
+        <div v-if="showProfileDropdown" class="profile-dropdown">
+          <button class="dropdown-item" @click="goToProfile">
+            <i class="pi pi-user"></i>
+            <span>Profile</span>
+          </button>
+          <button class="dropdown-item" @click="goToCompany">
+            <i class="pi pi-building"></i>
+            <span>Company</span>
+          </button>
+         
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item logout" @click="handleLogout">
+            <i class="pi pi-sign-out"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
     </div>
+
+    <!-- Profile Side Panel -->
+    <ProfileSidePanel
+      :isOpen="showProfilePanel"
+      @close="showProfilePanel = false"
+    />
+
+    <CompanySidePanel
+      :isOpen="showCompanyPanel"
+      @close="showCompanyPanel = false"
+    />
 
     
     <Dialog
@@ -86,11 +115,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute } from '#imports'
+import { useRoute, navigateTo } from '#imports'
 import Dialog from 'primevue/dialog'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
-import { storeToRefs } from 'pinia'
+import ProfileSidePanel from '~/components/ProfileSidePanel.vue'
+import CompanySidePanel from '~/components/CompanySidePanel.vue'
 import { useAuthStore } from '~/stores/auth'
 import { useAttendanceService } from '~/services/attendance.service'
 
@@ -101,24 +131,93 @@ const showNavbar = computed(() => {
 })
 
 const auth = useAuthStore()
-const { user } = storeToRefs(auth)
 const { checkIn, checkOut } = useAttendanceService()
 
-const employeeId = computed(() => user.value?.employeeId ?? null)
-const companyId = computed(() => user.value?.companyId ?? null)
+/* ================================
+   🔐 JWT DECODE 
+================================ */
 
-// Search State
+function decodeToken(jwt: string) {
+  try {
+    const payload = jwt.split('.')[1]
+    return JSON.parse(atob(payload))
+  } catch {
+    return null
+  }
+}
+
+const decodedToken = ref<any>(null)
+
+if (process.client) {
+  const token = localStorage.getItem('token')
+  if (token) {
+    decodedToken.value = decodeToken(token)
+    console.log('Decoded JWT:', decodedToken.value)
+  }
+}
+
+const employeeId = computed(() => decodedToken.value?.employee_id ?? null)
+const companyId = computed(() => decodedToken.value?.company_id ?? null)
+
+/* ================================
+   PROFILE DROPDOWN
+================================ */
+
+const showProfileDropdown = ref(false)
+const showProfilePanel = ref(false)
+const showCompanyPanel = ref(false)
+const avatarContainer = ref<HTMLElement>()
+
+function toggleProfileDropdown() {
+  showProfileDropdown.value = !showProfileDropdown.value
+}
+
+function closeProfileDropdown() {
+  showProfileDropdown.value = false
+}
+
+function goToProfile() {
+  showProfilePanel.value = true
+  showCompanyPanel.value = false
+  closeProfileDropdown()
+}
+
+function goToCompany() {
+  showCompanyPanel.value = true
+  showProfilePanel.value = false
+  closeProfileDropdown()
+}
+
+function handleLogout() {
+  auth.logout()
+  navigateTo('/login')
+  closeProfileDropdown()
+}
+
+if (process.client) {
+  document.addEventListener('click', (event) => {
+    if (avatarContainer.value && !avatarContainer.value.contains(event.target as Node)) {
+      closeProfileDropdown()
+    }
+  })
+}
+
+/* ================================
+   SEARCH
+================================ */
+
 const searchQuery = ref('')
 
 function handleSearch() {
-  console.log('🔍 Search triggered!')
-  console.log('Search query:', searchQuery.value)
   if (searchQuery.value.trim()) {
     console.log('Searching for:', searchQuery.value)
   }
 }
 
-// Attendance State
+/* ================================
+   ATTENDANCE LOGIC
+================================ */
+
 const showAttendanceDialog = ref(false)
 const showConfirmDialog = ref(false)
 
@@ -129,40 +228,37 @@ const today = new Date().toDateString()
 
 async function handleToggle(newValue: boolean) {
   console.log('🔔 Toggle changed to:', newValue)
-  
-  if (newValue) {
-    // User is checking in
-    if (!employeeId.value || !companyId.value) {
-      checkedIn.value = false
-      console.warn('Missing employee or company id for check-in.')
-      alert('Missing employee or company information')
-      return
-    }
 
+  if (!employeeId.value || !companyId.value) {
+    checkedIn.value = false
+    alert('Missing employee or company information')
+    return
+  }
+
+  if (newValue) {
+    // ✅ CHECK IN
     try {
-      console.log('Calling check-in API with:', { employeeId: employeeId.value, companyId: companyId.value })
       const res = await checkIn(employeeId.value, companyId.value)
-      console.log('Check-in response:', res)
       checkInTime.value =
         res?.data?.check_in_time ?? new Date().toLocaleTimeString()
+
       showAttendanceDialog.value = false
-    } catch (error) {
+    } catch (error: any) {
       checkedIn.value = false
-      const status = (error as any)?.response?.status
-      const message = (error as any)?.response?.data
-      if (status === 409) {
+
+      if (error?.response?.status === 409) {
         alert(
-          typeof message === 'string'
-            ? message
+          typeof error?.response?.data === 'string'
+            ? error.response.data
             : 'You have already checked out today.'
         )
         return
       }
-      console.error('Check-in failed:', error)
+
       alert('Check-in failed. Please try again.')
     }
   } else {
-    // User is checking out - show confirmation
+    // ✅ CHECK OUT (confirm dialog)
     showConfirmDialog.value = true
   }
 }
@@ -175,26 +271,25 @@ function cancelCheckout() {
 async function confirmCheckout() {
   if (!employeeId.value || !companyId.value) {
     checkedIn.value = true
-    console.warn('Missing employee or company id for check-out.')
+    alert('Missing employee or company information')
     return
   }
 
   try {
     await checkOut(employeeId.value, companyId.value)
+
     checkedIn.value = false
     checkInTime.value = ''
     showConfirmDialog.value = false
     showAttendanceDialog.value = false
   } catch (error) {
     checkedIn.value = true
-    console.error('Check-out failed:', error)
+    alert('Check-out failed. Please try again.')
   }
 }
 
 function openAttendanceDialog() {
-  console.log('🔔 Attendance button clicked!')
   showAttendanceDialog.value = true
-  console.log('Dialog state:', showAttendanceDialog.value)
 }
 </script>
 
@@ -316,5 +411,69 @@ font-size: 13px;
   align-items: center;
   justify-content: center;
   font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.avatar:hover {
+  background-color: #1d4ed8;
+}
+
+.avatar-container {
+  position: relative;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  transition: background-color 0.2s ease;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+
+.dropdown-item i {
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.dropdown-item.logout {
+  color: #dc2626;
+}
+
+.dropdown-item.logout i {
+  color: #dc2626;
+}
+
+.dropdown-item.logout:hover {
+  background-color: #fee2e2;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 4px 0;
 }
 </style>

@@ -25,7 +25,7 @@ export const useAttendanceService = () => {
   const submitAttendance = (
     payload: AttendancePayload
   ): Promise<AttendanceResponse> => {
-    return $api.post('/api/employees/attendance', payload)
+    return $api.post('/api/attendence/punch', payload)  
   }
 
   // CHECK-IN
@@ -52,9 +52,9 @@ export const useAttendanceService = () => {
     })
   }
 
-  // GET ATTENDANCE RECORDS
-  const getAttendanceRecords = (employeeId: number) => {
-    return $api.get(`/api/attendance/${employeeId}`)
+  // GET EMPLOYEE ATTENDANCE RECORDS
+  const getAttendanceRecords = () => {
+    return $api.get('/api/attendence/logs')     //api/attendance/logs
   }
 
   // GET TODAY'S ATTENDANCE

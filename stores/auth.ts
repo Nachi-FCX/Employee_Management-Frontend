@@ -14,9 +14,7 @@ interface User {
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
-  const token = ref<string | null>(
-    process.client ? localStorage.getItem('token') : null
-  )
+  const token = useCookie<string | null>('token')
 
   const loggedIn = computed(() => Boolean(token.value))
   const role = computed(() => user.value?.role ?? null)
@@ -49,13 +47,19 @@ export const useAuthStore = defineStore('auth', () => {
 
 
 
+  // function clearAuth() {
+  //   token.value = null
+  //   user.value = null
+  //   if (process.client) {
+  //     localStorage.removeItem('token')
+  //   }
+  // }
+
   function clearAuth() {
-    token.value = null
-    user.value = null
-    if (process.client) {
-      localStorage.removeItem('token')
-    }
-  }
+  token.value = null   // this clears the cookie
+  user.value = null
+}
+
 
   // ✅ SAFE LOGIN
   async function login(payload: {

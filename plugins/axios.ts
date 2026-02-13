@@ -13,10 +13,10 @@ export default defineNuxtPlugin(() => {
     
   })
   api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token')
+     const token = useCookie<string | null>('token')
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    if (token.value) {
+      config.headers.Authorization = `Bearer ${token.value}`
     }
 
     return config
@@ -37,10 +37,10 @@ export default defineNuxtPlugin(() => {
     
   })
   api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token')
+     const token = useCookie<string | null>('token')
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    if (token.value) {
+      config.headers.Authorization = `Bearer ${token.value}`
     }
 
     return config

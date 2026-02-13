@@ -39,10 +39,7 @@ export const authService = {
     
   
 
-  if (data.token) {
-      localStorage.setItem('token', data.token)
-      console.log('TOKEN STORED:', data.token)
-    }
+  
 
     return data
   },

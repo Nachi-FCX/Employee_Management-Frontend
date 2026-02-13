@@ -22,25 +22,25 @@ export interface CompanyResponse {
 export const companyService = {
   async setupCompany(payload: CompanyPayload) {
 
-    const { $api } = useNuxtApp()
-    const res = await $api.post('/api/root/create-company', payload)
+
+    const res = await api.post('/api/root/create-company', payload)
     return res.data
   },
 
-  async getCompanies(token: string): Promise<Company[]> {
+  async getCompanies(): Promise<Company[]> {
     
-    const response = await api.get<Company[]>(
-      '/api/root/getcompanies',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
+    const response = await api.get<{companies: Company[]}>(
+      '/api/root/company',
+      // {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`
+      //   }
+      // }
     )
 
     console.log('response:' , response.data)
 
-    return response.data
+    return response.data.companies
   },
  
   

@@ -1,7 +1,7 @@
 // stores/auth.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { navigateTo } from '#imports'
+import { navigateTo, useCookie } from '#imports'
 import { authService } from '~/services/auth.service'
 
 type Role = 'root' | 'employee'
@@ -13,10 +13,9 @@ interface User {
 }
 
 export const useAuthStore = defineStore('auth', () => {
+  const tokenCookie = useCookie<string | null>('token')
   const user = ref<User | null>(null)
-  const token = ref<string | null>(
-    process.client ? localStorage.getItem('token') : null
-  )
+  const token = ref<string | null>(tokenCookie.value ?? null)
 
   const loggedIn = computed(() => Boolean(token.value))
   const role = computed(() => user.value?.role ?? null)
@@ -48,6 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function setToken(jwt: string) {
     token.value = jwt
+    tokenCookie.value = jwt
     if (process.client) {
       localStorage.setItem('token', jwt)
     }
@@ -56,6 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
   function clearAuth() {
     token.value = null
     user.value = null
+    tokenCookie.value = null
     if (process.client) {
       localStorage.removeItem('token')
     }
@@ -74,13 +75,10 @@ export const useAuthStore = defineStore('auth', () => {
         throw new Error(res?.message || 'Invalid credentials')
       }
 
-      // setToken(res.token)
+      setToken(res.token)
 
       const decoded = decodeToken(res.token)
         
-      const token = useCookie('token')
-        token.value = res.token
-
       user.value = {
         username: payload.username,
         role: mapRoleFromType(decoded?.type), // ✅ FIXED
@@ -91,7 +89,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!process.client) return
 
       if (user.value.role === 'root' && !user.value.companyCompleted) {
-        await navigateTo('/onboarding/company')
+        await navigateTo('/dashboard')
       } else {
         await navigateTo('/dashboard')
       }

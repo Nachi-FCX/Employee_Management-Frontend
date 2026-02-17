@@ -1,4 +1,3 @@
-import { api } from '~/plugins/axios'
 import type { Company } from '~/types/company'
 
 export interface CompanyPayload {
@@ -28,8 +27,8 @@ export const companyService = {
   },
 
   async getCompanies(token: string): Promise<Company[]> {
-    
-    const response = await api.get<Company[]>(
+    const { $api } = useNuxtApp()
+    const response = await $api.get<Company[]>(
       '/api/root/getcompanies',
       {
         headers: {

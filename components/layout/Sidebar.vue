@@ -5,41 +5,41 @@
   >
     <!-- Menu -->
     <nav class="menu">
-      <div
+      <NuxtLink
         class="menu-item"
         :class="{ active: route.path === '/dashboard' }"
-        @click="navigateTo('/dashboard')"
+        to="/dashboard"
       >
         <i class="pi pi-home"></i>
         <span v-if="!isCollapsed">Dashboard</span>
-      </div>
+      </NuxtLink>
 
-      <div
+      <NuxtLink
         class="menu-item"
         :class="{ active: route.path === '/employees' }"
-        @click="navigateTo('/employees')"
+        to="/employees"
       >
         <i class="pi pi-users"></i>
         <span v-if="!isCollapsed">Employees</span>
-      </div>
+      </NuxtLink>
 
-      <div
+      <NuxtLink
         class="menu-item"
         :class="{ active: route.path === '/createemployees' }"
-        @click="navigateTo('/createemployees')"
+        to="/createemployees"
       >
         <i class="pi pi-user-plus"></i>
         <span v-if="!isCollapsed">Add Employee</span>
-      </div>
+      </NuxtLink>
 
-      <div
+      <NuxtLink
         class="menu-item"
         :class="{ active: route.path === '/attendance' }"
-        @click="navigateTo('/attendance')"
+        to="/attendance"
       >
         <i class="pi pi-calendar-clock"></i>
         <span v-if="!isCollapsed">Attendance</span>
-      </div>
+      </NuxtLink>
     </nav>
 
     <button class="collapse-btn" @click="toggleSidebar">
@@ -55,7 +55,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute, navigateTo } from '#imports'
+import { useRoute } from '#imports'
 
 const route = useRoute()
 const isCollapsed = ref(false)

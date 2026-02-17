@@ -18,6 +18,22 @@ export interface AttendanceResponse {
   }
 }
 
+export interface AttendanceLogItem {
+  attendance_id: number
+  employee_id: number
+  date: string
+  status: 'IN' | 'OUT'
+  created_at: string
+  company_id: number
+  check_in: string
+  check_out: string | null
+}
+
+export interface AttendanceLogsResponse {
+  message: string
+  data: AttendanceLogItem[]
+}
+
 export const useAttendanceService = () => {
   const { $api } = useNuxtApp()
 
@@ -53,8 +69,8 @@ export const useAttendanceService = () => {
   }
 
   // GET EMPLOYEE ATTENDANCE RECORDS
-  const getAttendanceRecords = () => {
-    return $api.get('/api/attendence/logs')     //api/attendance/logs
+  const getAttendanceRecords = (): Promise<AttendanceLogsResponse> => {
+    return $api.get('/api/attendence/logs')
   }
 
   // GET TODAY'S ATTENDANCE

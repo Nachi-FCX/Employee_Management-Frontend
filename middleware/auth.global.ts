@@ -5,7 +5,7 @@ export default defineNuxtRouteMiddleware((to) => {
     '/login',
     '/signup',
     '/forgot-password',
-    
+    '/landing'
   ]
 
   if (!auth.loggedIn && !publicRoutes.includes(to.path)) {

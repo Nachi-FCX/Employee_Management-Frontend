@@ -114,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, navigateTo } from '#imports'
 import Dialog from 'primevue/dialog'
 import ToggleSwitch from 'primevue/toggleswitch'
@@ -131,7 +131,7 @@ const showNavbar = computed(() => {
 })
 
 const auth = useAuthStore()
-const { checkIn, checkOut } = useAttendanceService()
+const { checkIn, checkOut, getAttendanceRecords } = useAttendanceService()
 
 /* ================================
    🔐 JWT DECODE 
@@ -226,6 +226,51 @@ const checkInTime = ref('')
 
 const today = new Date().toDateString()
 
+function extractLogs(payload: any): any[] {
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload?.data)) return payload.data
+  return []
+}
+
+function getEmployeeIdFromLog(log: any): number | null {
+  return (
+    log?.employee_id ??
+    log?.employee?.id ??
+    log?.employee?.employee_id ??
+    null
+  )
+}
+
+function getCheckInFromLog(log: any): string {
+  return log?.check_in_time ?? log?.check_in ?? log?.checkInTime ?? ''
+}
+
+function getCheckOutFromLog(log: any): string {
+  return log?.check_out_time ?? log?.check_out ?? log?.checkOutTime ?? ''
+}
+
+async function syncAttendanceState() {
+  if (!employeeId.value) return
+
+  try {
+    const response = await getAttendanceRecords()
+    const logs = extractLogs((response as any)?.data ?? response)
+    const employeeLogs = logs.filter(
+      (log: any) => getEmployeeIdFromLog(log) === employeeId.value
+    )
+
+    if (employeeLogs.length === 0) return
+
+    const lastLog = employeeLogs[employeeLogs.length - 1]
+    const checkOutTime = getCheckOutFromLog(lastLog)
+
+    checkedIn.value = !checkOutTime
+    checkInTime.value = getCheckInFromLog(lastLog)
+  } catch (err) {
+    console.error('Failed to sync attendance state', err)
+  }
+}
+
 async function handleToggle(newValue: boolean) {
   console.log('🔔 Toggle changed to:', newValue)
 
@@ -283,6 +328,18 @@ async function confirmCheckout() {
     showConfirmDialog.value = false
     showAttendanceDialog.value = false
   } catch (error) {
+    if (error?.response?.status === 409) {
+      const message =
+        typeof error?.response?.data === 'string'
+          ? error.response.data
+          : 'You have already checked out today.'
+      checkedIn.value = false
+      showConfirmDialog.value = false
+      showAttendanceDialog.value = false
+      alert(message)
+      return
+    }
+
     checkedIn.value = true
     alert('Check-out failed. Please try again.')
   }
@@ -291,6 +348,10 @@ async function confirmCheckout() {
 function openAttendanceDialog() {
   showAttendanceDialog.value = true
 }
+
+onMounted(() => {
+  syncAttendanceState()
+})
 </script>
 
 <style scoped>

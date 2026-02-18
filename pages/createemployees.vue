@@ -76,12 +76,23 @@
             :useIftaLabel="true"
             />
 
-        <dropdownfield
-  name="department_id"
-  label="Department"
-  v-model="formState.department_id"
-  :items="departments"
-/>
+
+            <dropdownfield
+          name="company_id"
+          label="Company"
+          v-model="formState.company_id"
+          :items="companies.map(c => ({
+            label: c.company_name,
+            value: c.id
+          }))"
+        />
+
+          <dropdownfield
+          name="department_id"
+          label="Department"
+          v-model="formState.department_id"
+          :items="departments"
+        />
 
 
 
@@ -95,15 +106,7 @@
           :useIftaLabel="true"
         />
 
-        <dropdownfield
-          name="company_id"
-          label="Company"
-          v-model="formState.company_id"
-          :items="companies.map(c => ({
-            label: c.company_name,
-            value: c.id
-          }))"
-        />
+        
 
         
 

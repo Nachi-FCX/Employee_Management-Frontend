@@ -9,13 +9,14 @@ export interface CompanyPayload {
 
 
 export interface CompanyResponse {
-  message?: string
-  company?: {
-    id: number
-    name: string
-    email: string
-    industry: string
-  }
+  // message?: string
+  // company?: {
+  //   id: number
+  //   name: string
+  //   email: string
+  //   industry: string
+  // }
+  companies: Company[]
 }
 
 export const companyService = {
@@ -28,19 +29,30 @@ export const companyService = {
 
   async getCompanies(token: string): Promise<Company[]> {
     const { $api } = useNuxtApp()
-    const response = await $api.get<Company[]>(
-      '/api/root/getcompanies',
+
+    const companyId = localStorage.getItem('selectedCompanyId')
+    const response = await $api.get<CompanyResponse>(
+      '/api/root/company',
       {
         headers: {
           Authorization: `Bearer ${token}`
         }
       }
     )
+  
 
     console.log('response:' , response.data)
 
-    return response.data
+    return response.data.companies
   },
- 
+ async getDepartmentsByCompany(companyId: number) {
+    const { $api } = useNuxtApp()
+
+    const response = await $api.get(
+      `/api/root/get-departments/${companyId}`
+    )
+
+    return response.data
+  }
   
 }

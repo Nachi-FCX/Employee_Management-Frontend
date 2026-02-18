@@ -10,6 +10,7 @@ interface User {
   username: string
   role: Role
   companyCompleted: boolean
+  company_id?: number
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -17,9 +18,11 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(tokenCookie.value ?? null)
 
+  
   const loggedIn = computed(() => Boolean(token.value))
   const role = computed(() => user.value?.role ?? null)
   const companyCompleted = computed(() => user.value?.companyCompleted ?? false)
+  const selectedCompanyId = ref<number | null>(null)
 
   // 🔐 Safe JWT decode
   function decodeToken(jwt: string) {
@@ -62,6 +65,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  if (token.value) {
+  const decoded = decodeToken(token.value)
+
+  if (decoded) {
+    user.value = {
+      username: decoded.username ?? '',
+      role: mapRoleFromType(decoded.type),
+      companyCompleted: Boolean(decoded.companyCompleted),
+      company_id: decoded.company_id
+    }
+  }
+}
   // ✅ SAFE LOGIN
   async function login(payload: {
     username: string
@@ -82,7 +97,8 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = {
         username: payload.username,
         role: mapRoleFromType(decoded?.type), // ✅ FIXED
-        companyCompleted: Boolean(decoded?.companyCompleted)
+        companyCompleted: Boolean(decoded?.companyCompleted),
+         company_id: decoded?.company_id 
       }
 
       // 🚨 Navigation ONLY on client
@@ -119,6 +135,7 @@ export const useAuthStore = defineStore('auth', () => {
     loggedIn,
     role,
     companyCompleted,
+    selectedCompanyId,
     login,
     logout,
     markCompanyCompleted,

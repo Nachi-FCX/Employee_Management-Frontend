@@ -33,13 +33,19 @@
 import { onMounted, ref, computed } from 'vue'
 import { useAttendanceService } from '~/services/attendance.service'
 import DataTable from '~/components/DataTable.vue'
+import { employeeService } from '~/services/employee.service'
 
 interface AttendanceLogApi {
   employee?: {
+    id?: number
+    employee_id?: number
+    name?: string
     first_name?: string
     last_name?: string
     employee_code?: string
   }
+  first_name?: string
+  last_name?: string
   employee_name?: string
   employee_code?: string
   employee_id?: number
@@ -77,13 +83,46 @@ const totalRecords = computed(() => attendanceRecords.value.length)
 
 function resolveEmployeeName(log: AttendanceLogApi): string {
   if (log.employee_name) return log.employee_name
-  const first = log.employee?.first_name ?? ''
-  const last = log.employee?.last_name ?? ''
+  if (log.employee?.name) return log.employee.name
+
+  const first = log.employee?.first_name ?? log.first_name ?? ''
+  const last = log.employee?.last_name ?? log.last_name ?? ''
   const full = `${first} ${last}`.trim()
   return full || 'Unknown'
 }
 
+function resolveEmployeeId(log: AttendanceLogApi): number | null {
+  return log.employee_id ?? log.employee?.id ?? log.employee?.employee_id ?? null
+}
+
+function buildEmployeeNameMap(employees: any[]): Map<number, string> {
+  const byId = new Map<number, string>()
+
+  for (const employee of employees) {
+    const id = employee?.id
+    if (typeof id !== 'number') continue
+
+    const first = employee?.first_name ?? ''
+    const last = employee?.last_name ?? ''
+    const fullName = `${first} ${last}`.trim()
+    if (fullName) {
+      byId.set(id, fullName)
+    }
+  }
+
+  return byId
+}
+
 function resolveEmployeeCode(log: AttendanceLogApi): string {
+  const employeeId =
+    log.employee_id ??
+    log.employee?.id ??
+    log.employee?.employee_id
+
+  if (employeeId !== undefined && employeeId !== null) {
+    return String(employeeId)
+  }
+
   return log.employee?.employee_code || log.employee_code || ''
 }
 
@@ -96,9 +135,17 @@ function resolveStatus(log: AttendanceLogApi): 'IN' | 'OUT' {
   return log.check_out_time || log.check_out ? 'OUT' : 'IN'
 }
 
-function mapLogToRecord(log: AttendanceLogApi): AttendanceRecord {
+function mapLogToRecord(
+  log: AttendanceLogApi,
+  employeeNameById: Map<number, string>
+): AttendanceRecord {
+  const employeeId = resolveEmployeeId(log)
+  const resolvedName = resolveEmployeeName(log)
+  const fallbackName =
+    employeeId !== null ? employeeNameById.get(employeeId) || 'Unknown' : 'Unknown'
+
   return {
-    employee: resolveEmployeeName(log),
+    employee: resolvedName === 'Unknown' ? fallbackName : resolvedName,
     employeeCode: resolveEmployeeCode(log),
     date: log.date || '',
     checkIn: log.check_in_time || log.check_in || '',
@@ -112,10 +159,21 @@ function mapLogToRecord(log: AttendanceLogApi): AttendanceRecord {
 async function fetchAttendanceRecords() {
   isLoading.value = true
   try {
+    let employeeNameById = new Map<number, string>()
+
+    try {
+      const employees = await employeeService.getEmployees()
+      employeeNameById = buildEmployeeNameMap(employees)
+    } catch (error) {
+      console.warn('Could not load employees for name lookup', error)
+    }
+
     const response = await getAttendanceRecords()
     const payload = (response as any).data
     const logs = Array.isArray(payload?.data) ? payload.data : []
-    attendanceRecords.value = logs.map((log: any) => mapLogToRecord(log))
+    attendanceRecords.value = logs.map((log: any) =>
+      mapLogToRecord(log, employeeNameById)
+    )
     console.log('Attendance records loaded:', attendanceRecords.value)
   } catch (err) {
     console.error('Failed to load attendance records', err)

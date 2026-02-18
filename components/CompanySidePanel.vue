@@ -20,52 +20,46 @@
 
       <div class="panel-content">
         <div class="company-icon"></div>
-        <div class="info-section">
-          <div class="info-group">
-            <label>Company Name</label>
-            <p>{{ companyName }}</p>
-          </div>
+        <form class="form-section" @submit.prevent="submitCompany">
+          <BaseInput
+            label="Company Name"
+            v-model="companyName"
+            useIftaLabel
+          />
 
-          <div class="info-group">
-            <label>Company Email</label>
-            <p>{{ companyEmail }}</p>
-          </div>
+          <BaseInput
+            label="Company Email"
+            v-model="companyEmail"
+            useIftaLabel
+          />
 
-          <div class="info-group">
-            <label>Industry</label>
-            <p>{{ companyIndustry }}</p>
-          </div>
+          <BaseInput
+            label="Industry"
+            v-model="companyIndustry"
+            useIftaLabel
+          />
 
-          <div class="info-group" v-if="user?.companyId">
-            <label>Company ID</label>
-            <p>{{ user.companyId }}</p>
-          </div>
+          <p class="status-text" :class="user?.companyCompleted ? 'status-active' : 'status-pending'">
+            Setup Status: {{ user?.companyCompleted ? 'Completed' : 'Pending' }}
+          </p>
 
-          <div class="info-group">
-            <label>Setup Status</label>
-            <p :class="user?.companyCompleted ? 'status-active' : 'status-pending'">
-              {{ user?.companyCompleted ? 'Completed' : 'Pending' }}
-            </p>
-          </div>
-        </div>
-      </div>
+          <BaseButton type="submit" :disabled="isSubmitting">
+            {{ isSubmitting ? 'Submitting...' : 'Setup Company' }}
+          </BaseButton>
 
-      <div class="panel-footer">
-        <Button
-          label="Close"
-          severity="secondary"
-          text
-          @click="closePanel"
-        />
+          <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
+        </form>
       </div>
     </div>
   </Transition>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import Button from 'primevue/button'
+import BaseInput from '~/components/BaseInput.vue'
+import BaseButton from '~/components/BaseButton.vue'
+import { companyService } from '~/services/company.service'
 import { useAuthStore } from '~/stores/auth'
 
 interface Props {
@@ -80,12 +74,47 @@ const emit = defineEmits<{
 const auth = useAuthStore()
 const { user } = storeToRefs(auth)
 
-const companyName = computed(() => 'Not set')
-const companyEmail = computed(() => 'Not set')
-const companyIndustry = computed(() => 'Not set')
+const companyName = ref('')
+const companyEmail = ref('')
+const companyIndustry = ref('')
+const isSubmitting = ref(false)
+const errorMessage = ref('')
 
 function closePanel() {
   emit('close')
+}
+
+function toCompanyCode(name: string) {
+  return name
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, '_')
+    .slice(0, 16)
+}
+
+async function submitCompany() {
+  errorMessage.value = ''
+
+  if (!companyName.value || !companyEmail.value) {
+    errorMessage.value = 'Company name and email are required.'
+    return
+  }
+
+  isSubmitting.value = true
+  try {
+    await companyService.setupCompany({
+      company_name: companyName.value,
+      company_code: toCompanyCode(companyName.value),
+      contact_email: companyEmail.value,
+      industry: companyIndustry.value || undefined
+    })
+
+    auth.markCompanyCompleted()
+  } catch (err: any) {
+    errorMessage.value = err?.message || 'Failed to setup company.'
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -152,6 +181,21 @@ function closePanel() {
   background: #f8fafc;
   font-size: 28px;
   margin: 0 auto 18px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.status-text {
+  font-size: 12px;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 12px;
 }
 
 .info-section {

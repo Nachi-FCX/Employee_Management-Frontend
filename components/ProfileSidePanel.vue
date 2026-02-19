@@ -114,14 +114,20 @@
                 severity="secondary"
                 text
                 type="button"
+                :disabled="isPasswordSubmitting"
                 @click="setPanelView('profile')"
               />
               <Button
-                label="Update Password"
+                :label="isPasswordSubmitting ? 'Updating...' : 'Update Password'"
                 icon="pi pi-check"
                 type="submit"
+                :loading="isPasswordSubmitting"
+                :disabled="isPasswordSubmitting"
               />
             </div>
+
+            <p v-if="passwordSubmitError" class="error-text">{{ passwordSubmitError }}</p>
+            <p v-if="passwordSubmitSuccess" class="success-text">{{ passwordSubmitSuccess }}</p>
           </form>
         </template>
 
@@ -149,6 +155,7 @@ import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import BaseInput from '~/components/BaseInput.vue'
 import { navigateTo } from '#imports'
+import { authService } from '~/services/auth.service'
 
 interface Props {
   isOpen: boolean
@@ -168,6 +175,9 @@ const passwordCurrent = ref('')
 const passwordNew = ref('')
 const passwordConfirm = ref('')
 const passwordErrors = ref({ current: '', new: '', confirm: '' })
+const isPasswordSubmitting = ref(false)
+const passwordSubmitError = ref('')
+const passwordSubmitSuccess = ref('')
 
 const panelTitle = computed(() => {
   if (panelView.value === 'password') return 'Change Password'
@@ -185,6 +195,15 @@ function closePanel() {
 
 function setPanelView(view: 'profile' | 'password') {
   panelView.value = view
+
+  if (view === 'profile') {
+    passwordCurrent.value = ''
+    passwordNew.value = ''
+    passwordConfirm.value = ''
+    passwordErrors.value = { current: '', new: '', confirm: '' }
+    passwordSubmitError.value = ''
+    passwordSubmitSuccess.value = ''
+  }
 }
 
 function handleLogout() {
@@ -193,8 +212,10 @@ function handleLogout() {
   navigateTo('/login')
 }
 
-function handlePasswordSubmit() {
+async function handlePasswordSubmit() {
   passwordErrors.value = { current: '', new: '', confirm: '' }
+  passwordSubmitError.value = ''
+  passwordSubmitSuccess.value = ''
 
   if (!passwordCurrent.value.trim()) {
     passwordErrors.value.current = 'Current password is required'
@@ -213,11 +234,36 @@ function handlePasswordSubmit() {
   const hasErrors = Object.values(passwordErrors.value).some(Boolean)
   if (hasErrors) return
 
-  console.log('Submitting password change')
-  setPanelView('profile')
-  passwordCurrent.value = ''
-  passwordNew.value = ''
-  passwordConfirm.value = ''
+  isPasswordSubmitting.value = true
+  try {
+    const response = await authService.changePassword({
+      current_password: passwordCurrent.value,
+      new_password: passwordNew.value,
+      confirm_password: passwordConfirm.value
+    })
+
+    passwordSubmitSuccess.value = response?.message || 'Password changed successfully.'
+
+    passwordCurrent.value = ''
+    passwordNew.value = ''
+    passwordConfirm.value = ''
+
+    setTimeout(() => {
+      if (panelView.value === 'password') {
+        setPanelView('profile')
+      }
+    }, 700)
+  } catch (err: any) {
+    const responseData = err?.response?.data
+    passwordSubmitError.value =
+      responseData?.message ||
+      responseData?.error ||
+      (Array.isArray(responseData?.errors) ? responseData.errors.join(', ') : '') ||
+      err?.message ||
+      'Failed to update password.'
+  } finally {
+    isPasswordSubmitting.value = false
+  }
 }
 
 watch(
@@ -225,6 +271,13 @@ watch(
   (isOpen) => {
     if (!isOpen) {
       panelView.value = 'profile'
+      passwordCurrent.value = ''
+      passwordNew.value = ''
+      passwordConfirm.value = ''
+      passwordErrors.value = { current: '', new: '', confirm: '' }
+      passwordSubmitError.value = ''
+      passwordSubmitSuccess.value = ''
+      isPasswordSubmitting.value = false
     }
   }
 )
@@ -443,6 +496,18 @@ watch(
   justify-content: flex-end;
   gap: 10px;
   padding-top: 8px;
+}
+
+.error-text {
+  margin: 0;
+  color: #dc2626;
+  font-size: 0.875rem;
+}
+
+.success-text {
+  margin: 0;
+  color: #16a34a;
+  font-size: 0.875rem;
 }
 
 /* Panel Footer */

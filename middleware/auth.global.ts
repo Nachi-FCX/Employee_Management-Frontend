@@ -1,6 +1,9 @@
 export default defineNuxtRouteMiddleware((to) => {
   const auth = useAuthStore()
 
+  // Initialize user from stored token on app startup
+  auth.initializeFromStoredToken()
+
   const publicRoutes = [
     '/login',
     '/signup',

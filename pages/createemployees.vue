@@ -76,18 +76,23 @@
             :useIftaLabel="true"
             />
 
-        <dropdownfield
-            name="department_id"
-            label="Department"
-            v-model="formState.department_id"
-            :items="[
-              { label: 'HR', value: 1 },
-              { label: 'Engineering', value: 2 },
-              { label: 'Finance', value: 3 },
-              { label: 'Marketing', value: 4 }
-            ]"
-            :useIftaLabel="true"
-          />
+
+            <dropdownfield
+          name="company_id"
+          label="Company"
+          v-model="formState.company_id"
+          :items="companies.map(c => ({
+            label: c.company_name,
+            value: c.id
+          }))"
+        />
+
+          <dropdownfield
+          name="department_id"
+          label="Department"
+          v-model="formState.department_id"
+          :items="departments"
+        />
 
 
 
@@ -101,15 +106,7 @@
           :useIftaLabel="true"
         />
 
-        <dropdownfield
-          name="company_id"
-          label="Company"
-          v-model="formState.company_id"
-          :items="companies.map(c => ({
-            label: c.company_name,
-            value: c.id
-          }))"
-        />
+        
 
         
 
@@ -138,6 +135,7 @@ import type { Employee } from '~/types/employee'
 import BaseInput from '~/components/BaseInput.vue'
 import BaseButton from '~/components/BaseButton.vue'
 import { employeeService } from '~/services/employee.service'
+import { watch } from 'vue'
 
 
 
@@ -202,10 +200,14 @@ onMounted(async () => {
     companies.value = await companyService.getCompanies(token.value)
     console.log(companies.value)
     console.log("companies : ",companies.value )
+
+
+  console.log("isArray:", Array.isArray(companies.value))
   } catch (err) {
     console.error('Failed to fetch companies', err)
   }
 })
+ 
 
 
 
@@ -217,11 +219,13 @@ async function handleSubmit() {
     first_name: formState.value.first_name,
     last_name: formState.value.last_name || undefined,
     email: formState.value.email,
-    // department_id: Number(formState.value.department_id),
+    department_id: Number(formState.value.department_id),
     // role_id: Number(formState.value.role_id),
     // username: formState.value.username,
     // password: formState.value.password,
-    department_id:2,
+//     department_id: formState.value.department_id
+// ? Number(formState.value.department_id)
+//   : undefined,
     role_id:1,
 
 
@@ -236,6 +240,37 @@ async function handleSubmit() {
   console.log('CreateEmployee payload:', payload)
   await employeeService.createEmployee(payload)
 }
+
+
+import type { Department } from '~/types/company'
+const departments = ref<{ label: string; value: number }[]>([])
+
+const fetchDepartments = async (companyId: number) => {
+  const data: Department[] =
+    await companyService.getDepartmentsByCompany(companyId)
+
+  departments.value = data.map((dept) => ({
+    label: dept.department_name,
+    value: dept.department_id
+  }))
+}
+
+watch(
+  () => formState.value.company_id,
+  async (newCompanyId) => {
+    if (!newCompanyId) {
+      departments.value = []
+      formState.value.department_id = null
+      return
+    }
+
+    try {
+      await fetchDepartments(Number(newCompanyId))
+    } catch (error) {
+      console.error('Failed to load departments:', error)
+    }
+  }
+)
 
 
 </script>

@@ -20,6 +20,18 @@
 
     
     <div class="nav-right">
+
+      <DropdownField
+  v-if="authStore.role === 'root'"
+  :modelValue="selectedCompanyId"
+  @update:modelValue="handleCompanyChange"
+  name="company"
+  label="Switch Company"
+  :items="companyOptions"
+/>
+
+
+
       
       <button class="attendance-btn" @click="openAttendanceDialog">
         <i class="pi pi-calendar-clock"></i>
@@ -38,6 +50,9 @@
             <i class="pi pi-building"></i>
             <span>Company</span>
           </button>
+
+
+
          
           <div class="dropdown-divider"></div>
           <button class="dropdown-item logout" @click="handleLogout">
@@ -46,6 +61,12 @@
           </button>
         </div>
       </div>
+
+
+  
+
+  <!-- Attendance button + avatar below -->
+
     </div>
 
     <!-- Profile Side Panel -->
@@ -110,11 +131,16 @@
         />
       </div>
     </Dialog>
+
+
+
+
+
   </nav>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted , watch } from 'vue'
 import { useRoute, navigateTo } from '#imports'
 import Dialog from 'primevue/dialog'
 import ToggleSwitch from 'primevue/toggleswitch'
@@ -123,6 +149,7 @@ import ProfileSidePanel from '~/components/ProfileSidePanel.vue'
 import CompanySidePanel from '~/components/CompanySidePanel.vue'
 import { useAuthStore } from '~/stores/auth'
 import { useAttendanceService } from '~/services/attendance.service'
+import DropdownField from '~/components/dropdownfield.vue'
 
 const route = useRoute()
 
@@ -352,6 +379,71 @@ function openAttendanceDialog() {
 onMounted(() => {
   syncAttendanceState()
 })
+
+
+
+
+
+// Comapny Selection //
+
+import { companyService } from '~/services/company.service'
+
+const companyOptions = computed(() =>
+  companies.value.map(c => ({
+    label: c.company_name,
+    value: c.id
+  }))
+)
+
+
+
+const authStore = useAuthStore()
+const companies = ref<any[]>([])
+const selectedCompanyId = ref<number | null>(null)
+
+
+
+onMounted(async () => {
+  if (authStore.role === 'root') {
+    const token = authStore.token
+    if (!token) return
+
+    const res = await companyService.getCompanies(token)
+    companies.value = res
+
+    const stored = localStorage.getItem('selectedCompanyId')
+
+    if (stored) {
+      selectedCompanyId.value = Number(stored)
+    } else if (companies.value.length > 0) {
+      selectedCompanyId.value = companies.value[0].id
+      localStorage.setItem('selectedCompanyId', String(selectedCompanyId.value))
+    }
+  }
+})
+
+function handleCompanyChange(value: string | number | null) {
+  if (!value) return
+
+  const numericValue = Number(value)
+
+  localStorage.setItem('selectedCompanyId', String(numericValue))
+
+  navigateTo('/employees')
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 </script>
 
 <style scoped>

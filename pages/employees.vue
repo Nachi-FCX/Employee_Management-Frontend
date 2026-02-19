@@ -49,7 +49,7 @@ const tableData = computed(() =>
 
 onMounted(async () => {
   try {
-     employees.value = await employeeService.getEmployees(15)
+     employees.value = await employeeService.getEmployees()
      console.log(employees.value)
   } catch (err) {
     console.error('Failed to load employees', err)
